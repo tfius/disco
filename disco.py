@@ -8,6 +8,9 @@ from kernel import archive, audit, config, ledger, loop
 
 
 def cmd_run(args):
+    if config.CLAIMS.exists() and any(config.CLAIMS.iterdir()):
+        print("pre-run verify (selection):")
+        archive.verify_all()
     for i in range(args.n):
         print(f"thread {i + 1}/{args.n}")
         try:

@@ -49,7 +49,8 @@ Frozen rules:
   reuse is executable, not citation.
 - **Selection, not debate.** A claim whose check fails reality on 2 consecutive `verify`
   runs is culled — demoted back to an open question to be re-earned or refuted. The
-  archive is a population; reality is its environment.
+  archive is a population; reality is its environment. `verify` runs automatically
+  before every `run` session, so the agent always starts from a reality-checked archive.
 
 Three speeds:
 
