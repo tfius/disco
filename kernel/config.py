@@ -14,6 +14,7 @@ CLAUDE_MODEL = os.environ.get("DISCO_CLAUDE_MODEL", "")  # empty = CLI default
 EXEC_TIMEOUT = int(os.environ.get("DISCO_EXEC_TIMEOUT", "30"))   # seconds per experiment
 MAX_STEPS = int(os.environ.get("DISCO_MAX_STEPS", "8"))          # experiment steps per thread
 MIN_CLAIM_EXPERIMENTS = int(os.environ.get("DISCO_MIN_CLAIM", "2"))  # replication gate
+CULL_AFTER = int(os.environ.get("DISCO_CULL_AFTER", "2"))  # consecutive verify fails -> demoted
 LLM_TIMEOUT = int(os.environ.get("DISCO_LLM_TIMEOUT", "900"))    # seconds per model call
 AGENT_TEMPERATURE = float(os.environ.get("DISCO_TEMPERATURE", "0.8"))
 JUDGE_TEMPERATURE = 0.1

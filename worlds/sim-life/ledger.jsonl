@@ -41,3 +41,4 @@
 {"ts": "2026-07-19T16:55:21", "kind": "step", "thread": "20260719-165333", "step": 2, "focus": "new territory: glider on small square toruses \u2014 smallest N where the glider survives as a true spaceship (period-4 translation by (1,1)), and how it degenerates below that", "confidence": 55, "surprise": 1, "judge_note": "All three claims confirmed: ship iff min\u22655, period=4\u00b7lcm exactly on every True row, 4x4 is a period-8 non-translation oscillator; only nuance is 4x4 pop dips to 4 at two phases.", "exit": 0, "timeout": false}
 {"ts": "2026-07-19T16:55:47", "kind": "claim", "thread": "20260719-165333", "slug": "on-w-h-toroidal-life-grids-the-standard-glider-0-1-1-2-2-0-2", "admitted": true}
 {"ts": "2026-07-19T16:56:30", "kind": "verify", "total": 7, "passed": 7, "failed": []}
+{"ts": "2026-07-19T17:13:46", "kind": "verify", "total": 7, "passed": 7, "failed": [], "culled": []}

@@ -47,13 +47,51 @@ Frozen rules:
 - **Only the kernel writes** the ledger and the archive.
 - **Tools are inherited.** `archive/tools/` is on the `PYTHONPATH` of every experiment —
   reuse is executable, not citation.
+- **Selection, not debate.** A claim whose check fails reality on 2 consecutive `verify`
+  runs is culled — demoted back to an open question to be re-earned or refuted. The
+  archive is a population; reality is its environment.
 
 Three speeds:
 
 - fast — `disco run`: the surprise-driven loop above; never sees the audit metric
-- medium — `disco audit`: does the archive make a *fresh* model better at predicting
-  this world? uplift = accuracy(with archive) − accuracy(without)
+- medium — `disco verify` / `disco audit`: reality re-checks the archive and culls what
+  rots; uplift = accuracy(with archive) − accuracy(without) for a fresh model
 - slow — you: read the archive, seed domains, prune degenerate obsessions
+
+## The graph
+
+Not one loop — a graph of loops at three speeds, every path anchored in execution:
+
+```mermaid
+flowchart TB
+    HU["human — slow loop"] -->|"world.md: the territory"| AG
+    HU -->|"seed questions"| OQ
+
+    subgraph FAST["fast loop — one discovery thread"]
+        AG["agent"] -->|"1: commit prediction"| WX["world: Python execution — the only oracle"]
+        WX -->|"2: result"| JU["judge: fresh context, surprise 0-10"]
+        JU -->|"3: dig while surprise shrinks"| AG
+    end
+
+    AG -->|"4: claim + check, min 2 experiments"| GA{"gate"}
+    GA -->|"check exits 0"| CL["archive: claims"]
+    GA -->|"refused / unreplicated"| OQ["archive: open questions"]
+    AG -->|"bank tool"| TO["archive: tools"]
+    TO -->|"importable in every experiment"| WX
+    CL -->|"context for next thread"| AG
+    OQ -->|"picked up by later threads"| AG
+
+    VF["verify — medium loop"] -->|"re-runs every check"| CL
+    VF -->|"fails reality 2x: culled"| OQ
+    AU["audit — medium loop"] -->|"uplift: does the archive predict?"| CL
+    VF -->|"evidence"| HU
+    AU -->|"evidence"| HU
+```
+
+The fast loop never sees the audit metric (no metric to game); the agent never writes
+the archive (only the gate does); curiosity itself is anchored — surprise is scored
+against a prediction committed *before* execution, by a judge that never saw the
+agent's reasoning.
 
 ## Usage
 

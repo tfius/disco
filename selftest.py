@@ -201,7 +201,17 @@ def main():
 
     # claims-rot audit: the admitted check must still pass
     v = archive.verify_all(on_event=lambda m: None)
-    assert v == {"total": 1, "passed": 1, "failed": []}, v
+    assert v == {"total": 1, "passed": 1, "failed": [], "culled": []}, v
+
+    # selection: sabotage the check — two consecutive verify failures must cull the claim
+    (claim_dir / "check.py").write_text("import sys; sys.exit(1)\n")
+    v = archive.verify_all(on_event=lambda m: None)
+    assert v["failed"] == [outcome["slug"]] and not v["culled"], f"first fail should only rot: {v}"
+    v = archive.verify_all(on_event=lambda m: None)
+    assert v["culled"] == [outcome["slug"]], f"second fail should cull: {v}"
+    assert not claim_dir.exists(), "culled claim dir must be gone"
+    demoted = list(config.QUESTIONS.glob("demoted-*.md"))
+    assert len(demoted) == 1, f"demotion should create an open question: {demoted}"
 
     # stdlib-shadow guard: a tool named like a stdlib module must be rejected
     name, reason = archive.save_tool("enum", "x = 1")

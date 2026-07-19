@@ -43,5 +43,6 @@ def tail(n: int = 12, for_agent: bool = False) -> str:
         elif kind == "audit":
             out.append(f"- AUDIT: uplift {e.get('uplift')} (with archive {e.get('with_archive')} vs without {e.get('without_archive')})")
         elif kind == "verify":
-            out.append(f"- VERIFY: {e.get('passed')}/{e.get('total')} claim checks still pass")
+            culled = f", culled: {', '.join(e['culled'])}" if e.get("culled") else ""
+            out.append(f"- VERIFY: {e.get('passed')}/{e.get('total')} claim checks still pass{culled}")
     return "\n".join(out[-n:]) if out else "(no activity yet)"

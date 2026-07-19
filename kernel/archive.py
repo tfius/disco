@@ -69,23 +69,60 @@ def resolve_question(slug: str):
 
 
 def verify_all(on_event=print) -> dict:
-    """Claims-rot audit: re-run every archived check. Claims must keep touching the world."""
+    """Claims-rot audit with selection: re-run every archived check. A claim whose
+    check fails reality CULL_AFTER times in a row is demoted to an open question —
+    the archive is a population and verify is its environment."""
     from . import ledger
     claims = sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []
-    failed = []
+    failed, culled = [], []
     for d in claims:
         check = d / "check.py"
-        if not check.exists():
-            failed.append(d.name)
+        ok = False
+        if check.exists():
+            result = world.run_python(check.read_text(), config.RUNS / "verify" / d.name)
+            ok = not result["timeout"] and result["exit"] == 0
+        meta_file = d / "meta.json"
+        try:
+            meta = json.loads(meta_file.read_text())
+        except (OSError, json.JSONDecodeError):
+            meta = {}
+        if ok:
+            if meta.get("verify_fails"):
+                meta["verify_fails"] = 0
+                meta_file.write_text(json.dumps(meta, indent=2))
             continue
-        result = world.run_python(check.read_text(), config.RUNS / "verify" / d.name)
-        if result["timeout"] or result["exit"] != 0:
-            failed.append(d.name)
-            on_event(f"  ROTTED: {d.name} (exit {result['exit']}, timeout={result['timeout']})")
-    entry = {"total": len(claims), "passed": len(claims) - len(failed), "failed": failed}
+        fails = meta.get("verify_fails", 0) + 1
+        failed.append(d.name)
+        if fails >= config.CULL_AFTER:
+            _demote(d, fails)
+            culled.append(d.name)
+            on_event(f"  CULLED: {d.name} — check failed reality {fails}x in a row, demoted to open question")
+        else:
+            meta["verify_fails"] = fails
+            meta_file.write_text(json.dumps(meta, indent=2))
+            on_event(f"  ROTTED: {d.name} (consecutive fails: {fails}/{config.CULL_AFTER})")
+    entry = {"total": len(claims), "passed": len(claims) - len(failed),
+             "failed": failed, "culled": culled}
     ledger.log("verify", **entry)
-    on_event(f"verify: {entry['passed']}/{entry['total']} claim checks still pass")
+    on_event(f"verify: {entry['passed']}/{entry['total']} claim checks still pass"
+             + (f", {len(culled)} culled" if culled else ""))
     return entry
+
+
+def _demote(claim_dir: Path, fails: int):
+    """Reality vetoed the claim repeatedly: off the wall, back into open questions."""
+    import shutil
+    statement = _first_line(claim_dir / "claim.md")
+    body = (claim_dir / "claim.md").read_text() if (claim_dir / "claim.md").exists() else ""
+    check = (claim_dir / "check.py").read_text() if (claim_dir / "check.py").exists() else ""
+    save_question(
+        f"demoted: {statement[:70]}",
+        f"This was an archived claim; its check failed reality {fails} consecutive "
+        f"verify runs, so it was demoted. Re-earn it or refute it.\n\n{body}\n\n"
+        f"old check:\n```python\n{check}\n```",
+        "verify-cull",
+    )
+    shutil.rmtree(claim_dir)
 
 
 def _signatures(path: Path) -> str:
