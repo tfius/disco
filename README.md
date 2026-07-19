@@ -50,7 +50,7 @@ Frozen rules:
   refused; if the agent insists, the kernel parks the claim as an open question.
 - **Learnability over novelty.** Interesting = surprise that shrinks under study.
 - **Only the kernel writes** the ledger and the archive.
-- **Tools are inherited.** `archive/tools/` is on the `PYTHONPATH` of every experiment —
+- **Tools are inherited.** The world's `archive/tools/` is on the `PYTHONPATH` of every experiment —
   reuse is executable, not citation.
 - **Selection, not debate.** A claim whose check fails reality on 2 consecutive `verify`
   runs is culled — demoted back to an open question to be re-earned or refuted. The
@@ -133,11 +133,11 @@ python3 disco.py run -n 5     # five discovery threads
 python3 disco.py status       # archive index + recent ledger
 python3 disco.py audit        # naive-agent uplift measurement
 python3 disco.py verify       # re-run every claim check (claims-rot audit)
-python3 disco.py reset        # fresh start — stashes archive/runs/ledger into attic/<ts>/
+python3 disco.py reset        # fresh start — stashes the world's archive/runs/ledger into attic/<world>-<ts>/
 python3 disco.py seed "sqlite transaction semantics" "when does a write lock actually engage?"
 ```
 
-`seed` is the human steering channel: it parks a question in `archive/open-questions/`,
+`seed` is the human steering channel: it parks a question in the world's `archive/open-questions/`,
 which the agent sees at the start of every thread and may pick up. Seed territory, not
 instructions — the discovering is its job.
 
@@ -185,7 +185,7 @@ DISCO_BACKEND=claude python3 disco.py audit
 ```
 
 Each model call is a stateless `claude -p --output-format text --max-turns 1` subprocess;
-all outputs still land in `runs/`, `archive/`, `ledger.jsonl` exactly as with LM Studio.
+all outputs still land in the world's `runs/`, `archive/`, `ledger.jsonl` exactly as with LM Studio.
 (Temperature is not controllable through the CLI; judge calls are less deterministic.)
 
 ### Config
