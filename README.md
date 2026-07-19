@@ -1,6 +1,6 @@
 # disco
 
-## ELI5
+## Imagine
 
 Imagine a curious kid locked in a room with a computer and nothing else — no books,
 no teacher. The kid pokes at things, but with one house rule: **before every poke,
