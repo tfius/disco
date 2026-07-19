@@ -12,7 +12,8 @@ gadgets the kid builds stay in a toolbox for tomorrow. Slowly the walls fill wit
 proven facts and the toolbox with instruments — none of it taught, all of it earned.
 
 **disco** is that room. The kid is an LLM; the pokes are Python experiments; the wall is
-`archive/claims/`; the toolbox is `archive/tools/`. The harness never tells it what's
+`worlds/<name>/archive/claims/`; the toolbox is `worlds/<name>/archive/tools/`. The
+harness never tells it what's
 true or what to try — it only enforces the house rules: predict first, reality decides,
 replicate before you claim, nothing enters the wall without a runnable proof. And the
 room itself is swappable: point it at a different **world** — a codebase, a database, a
