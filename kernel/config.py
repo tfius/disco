@@ -3,19 +3,13 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+WORLDS = ROOT / "worlds"
 
 # "openai" (LM Studio & co.) or "claude" (shells out to `claude -p`)
 BACKEND = os.environ.get("DISCO_BACKEND", "openai")
 BASE_URL = os.environ.get("DISCO_BASE_URL", "http://localhost:1234/v1")
 MODEL = os.environ.get("DISCO_MODEL", "qwen3.6-27b-med-slo@f16")
 CLAUDE_MODEL = os.environ.get("DISCO_CLAUDE_MODEL", "")  # empty = CLI default
-
-ARCHIVE = ROOT / "archive"
-CLAIMS = ARCHIVE / "claims"
-TOOLS = ARCHIVE / "tools"
-QUESTIONS = ARCHIVE / "open-questions"
-RUNS = ROOT / "runs"
-LEDGER = ROOT / "ledger.jsonl"
 
 EXEC_TIMEOUT = int(os.environ.get("DISCO_EXEC_TIMEOUT", "30"))   # seconds per experiment
 MAX_STEPS = int(os.environ.get("DISCO_MAX_STEPS", "8"))          # experiment steps per thread
@@ -24,6 +18,30 @@ LLM_TIMEOUT = int(os.environ.get("DISCO_LLM_TIMEOUT", "900"))    # seconds per m
 AGENT_TEMPERATURE = float(os.environ.get("DISCO_TEMPERATURE", "0.8"))
 JUDGE_TEMPERATURE = 0.1
 MAX_TOKENS = int(os.environ.get("DISCO_MAX_TOKENS", "3000"))
+
+DEFAULT_WORLD_TEXT = "Your world is the Python software environment of this machine."
+
+
+def set_world(name: str):
+    """Point all state paths at worlds/<name>/. Kernel modules read these at call time."""
+    global WORLD, WORLD_DIR, ARCHIVE, CLAIMS, TOOLS, QUESTIONS, RUNS, LEDGER
+    WORLD = name
+    WORLD_DIR = WORLDS / name
+    ARCHIVE = WORLD_DIR / "archive"
+    CLAIMS = ARCHIVE / "claims"
+    TOOLS = ARCHIVE / "tools"
+    QUESTIONS = ARCHIVE / "open-questions"
+    RUNS = WORLD_DIR / "runs"
+    LEDGER = WORLD_DIR / "ledger.jsonl"
+
+
+set_world(os.environ.get("DISCO_WORLD", "python"))
+
+
+def world_description() -> str:
+    """Territory text injected into the kernel prompt — the only domain-content file."""
+    f = WORLD_DIR / "world.md"
+    return f.read_text().strip() if f.exists() else DEFAULT_WORLD_TEXT
 
 
 def ensure_dirs():

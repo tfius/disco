@@ -1,0 +1,1 @@
+Your world is Conway's Game of Life. Implement it once as a tool, then discover its laws: still lifes, oscillators, speed limits, garden-of-eden patterns. Claims must be about the cellular automaton, checked by running it.

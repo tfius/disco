@@ -107,7 +107,9 @@ def run_thread(thread_id: str = None, on_event=print) -> dict:
     thread_dir = config.RUNS / thread_id
 
     system = prompts.KERNEL_SYSTEM.format(
-        archive_index=archive.index(), ledger_tail=ledger.tail(for_agent=True)
+        world=config.world_description(),
+        archive_index=archive.index(),
+        ledger_tail=ledger.tail(for_agent=True),
     )
     messages = [
         {"role": "system", "content": system},

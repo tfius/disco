@@ -11,7 +11,7 @@ test anyone can run to prove it, and only after checking it more than once. Usef
 gadgets the kid builds stay in a toolbox for tomorrow. Slowly the walls fill with
 proven facts and the toolbox with instruments — none of it taught, all of it earned.
 
-disco is that room. The kid is an LLM; the pokes are Python experiments; the wall is
+**disco** is that room. The kid is an LLM; the pokes are Python experiments; the wall is
 `archive/claims/`; the toolbox is `archive/tools/`. The harness never tells it what's
 true or what to try — it only enforces the house rules: predict first, reality decides,
 replicate before you claim, nothing enters the wall without a runnable proof.
@@ -73,6 +73,38 @@ python3 disco.py seed "sqlite transaction semantics" "when does a write lock act
 which the agent sees at the start of every thread and may pick up. Seed territory, not
 instructions — the discovering is its job.
 
+## Worlds
+
+The kernel is a domain-agnostic epistemology engine; the *world* — the territory the
+agent explores — is configuration. A world is a directory `worlds/<name>/` holding a
+`world.md` (the territory description injected into the agent's prompt — the only
+domain-content file in the system) plus that world's own archive, runs, and ledger.
+The actuator is always Python: it's the universal instrument, and anything drivable
+from Python — repos, databases, servers, simulations — is explorable territory.
+
+```sh
+python3 disco.py worlds                       # list worlds and claim counts
+python3 disco.py newworld legacy "Your world is the codebase at /path/to/repo. \
+Discover its actual behavior — invariants, quirks, undocumented contracts — as \
+runnable characterization tests."
+python3 disco.py -w legacy run -n 5           # explore it (or DISCO_WORLD=legacy)
+python3 disco.py -w legacy verify             # its claims, re-checked
+```
+
+**Fit test** — a domain works when all four hold:
+
+1. **Cheap oracle** — reality answers in seconds and cannot be argued with.
+2. **Predictable** — outcomes can be stated up front, specifically enough to be wrong.
+3. **Re-checkable** — claim checks can re-ask reality anytime, forever.
+4. **Safe to poke** — observing does not mutate or damage the world.
+
+Good fits: legacy codebases (claims become characterization tests), dependency
+upgrades (behavioral diff between versions), undocumented APIs and file formats,
+database/infra semantics, simulated universes (see `worlds/sim-life/`), experimental
+math. Poor fits: taste domains (no oracle), retrieval facts (check verifies fetching,
+not truth), slow or costly oracles (real lab experiments), and live production
+systems (pokes mutate the world — explore staging, run `verify` against prod).
+
 ### Claude backend
 
 With [Claude Code](https://claude.com/claude-code) installed and authenticated, the agent
@@ -90,9 +122,10 @@ all outputs still land in `runs/`, `archive/`, `ledger.jsonl` exactly as with LM
 
 ### Config
 
-Env vars: `DISCO_BACKEND` (`openai`|`claude`), `DISCO_BASE_URL`, `DISCO_MODEL`,
-`DISCO_CLAUDE_MODEL`, `DISCO_MAX_STEPS` (default 8), `DISCO_MIN_CLAIM` (experiments
-required before a claim is admissible, default 2), `DISCO_EXEC_TIMEOUT`, `DISCO_TEMPERATURE`.
+Env vars: `DISCO_WORLD` (default `python`), `DISCO_BACKEND` (`openai`|`claude`),
+`DISCO_BASE_URL`, `DISCO_MODEL`, `DISCO_CLAUDE_MODEL`, `DISCO_MAX_STEPS` (default 8),
+`DISCO_MIN_CLAIM` (experiments required before a claim is admissible, default 2),
+`DISCO_EXEC_TIMEOUT`, `DISCO_TEMPERATURE`.
 
 ## Warning
 
@@ -103,10 +136,9 @@ If that is a concern, run the whole harness inside a VM or container.
 ## Layout
 
 ```
-kernel/           frozen: loop, world (executor), archive rules, judge, audit
-archive/claims/   verified facts: claim.md + check.py + meta.json
-archive/tools/    reusable code, importable in experiments
-archive/open-questions/
-runs/             per-thread workdirs: predictions, code, results
-ledger.jsonl      append-only, kernel-written
+kernel/                     frozen: loop, world (executor), archive rules, judge, audit
+worlds/<name>/world.md      territory description — the only domain-content file
+worlds/<name>/archive/      claims/ (claim.md + check.py + meta.json), tools/, open-questions/
+worlds/<name>/runs/         per-thread workdirs: predictions, code, results
+worlds/<name>/ledger.jsonl  append-only, kernel-written
 ```
