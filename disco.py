@@ -2,23 +2,30 @@
 """disco — a minimal discovery harness. Predict, run, be surprised, compress, archive."""
 import argparse
 import json
+import os
 import sys
 
-from kernel import archive, audit, config, ledger, loop
+from kernel import archive, audit, config, evolve, ledger, loop
 
 
 def cmd_run(args):
     if config.CLAIMS.exists() and any(config.CLAIMS.iterdir()):
         print("pre-run verify (selection):")
         archive.verify_all()
+    evolving = os.environ.get("DISCO_EVOLVE", "1") != "0"
     for i in range(args.n):
         print(f"thread {i + 1}/{args.n}")
         try:
-            outcome = loop.run_thread()
+            variant, methodology = evolve.current() if evolving else ("champion", None)
+            if evolving:
+                print(f"  methodology variant: {variant} (gen {evolve._state()['generation']})")
+            outcome = loop.run_thread(methodology=methodology)
         except RuntimeError as e:
             print(f"  aborted (endpoint?): {e}", file=sys.stderr)
             break
         print(f"  ended: {outcome['ending']} after {outcome['steps']} step(s)")
+        if evolving:
+            evolve.note(outcome, variant)
 
 
 def cmd_verify(args):
@@ -58,6 +65,21 @@ def cmd_newworld(args):
     print(f"world '{args.name}' created — territory: {config.WORLD_DIR / 'world.md'}\n")
     print(FIT_TEST)
     print(f"then: python3 disco.py -w {args.name} run -n 3")
+
+
+def cmd_evolve(args):
+    s = evolve._state()
+    champ = evolve.champion_text()
+    chal = evolve.challenger_text()
+    hist = config.WORLD_DIR / "methodology-history"
+    print(f"world: {config.WORLD} — generation {s['generation']}, "
+          f"{len(list(hist.glob('gen-*.md'))) if hist.exists() else 0} promoted ancestors")
+    print(f"\nchampion methodology:\n{champ or '(empty — never evolved)'}")
+    if chal is not None:
+        print(f"\nchallenger on trial "
+              f"({len(s['champion'])}+{len(s['challenger'])}/{config.TRIAL_THREADS}×2 threads):\n{chal}")
+    else:
+        print("\nno challenger on trial (one will be proposed at next run)")
 
 
 def cmd_seed(args):
@@ -121,6 +143,8 @@ def main():
     nw.add_argument("name", help="world name (used with -w)")
     nw.add_argument("description", help='territory text, e.g. "Your world is the codebase at /path/..."')
     nw.set_defaults(fn=cmd_newworld)
+    ev = sub.add_parser("evolve", help="show methodology evolution state for the world")
+    ev.set_defaults(fn=cmd_evolve)
     args = p.parse_args()
     if args.world:
         config.set_world(args.world)

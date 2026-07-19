@@ -25,7 +25,7 @@ def tail(n: int = 12, for_agent: bool = False) -> str:
         except json.JSONDecodeError:
             continue
         kind = e.get("kind")
-        if for_agent and kind in ("audit", "verify"):
+        if for_agent and kind in ("audit", "verify", "evolution"):
             continue
         if kind == "step":
             out.append(f"- step {e.get('thread')}/{e.get('step')}: surprise {e.get('surprise')}/10 — {e.get('focus', '')[:80]}")
@@ -42,6 +42,10 @@ def tail(n: int = 12, for_agent: bool = False) -> str:
             out.append(f"- noise abandoned: {e.get('focus', '')[:80]}")
         elif kind == "audit":
             out.append(f"- AUDIT: uplift {e.get('uplift')} (with archive {e.get('with_archive')} vs without {e.get('without_archive')})")
+        elif kind == "evolution":
+            scores = (f" ({e.get('challenger_score')} vs {e.get('champion_score')})"
+                      if e.get("challenger_score") is not None else "")
+            out.append(f"- EVOLUTION gen {e.get('generation')}: {e.get('event')}{scores}")
         elif kind == "verify":
             culled = f", culled: {', '.join(e['culled'])}" if e.get("culled") else ""
             out.append(f"- VERIFY: {e.get('passed')}/{e.get('total')} claim checks still pass{culled}")

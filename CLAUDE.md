@@ -23,6 +23,10 @@ predict → run → surprise → compress → archive. Design rationale in READM
   The agent is supposed to discover everything else itself.
 - Domain content lives in exactly one place: `worlds/<name>/world.md`. Steering goes
   through `seed` (open questions) or world.md — never through kernel code or prompts.
+- `worlds/<name>/methodology.md` is AGENT-authored strategy, evolved by
+  champion/challenger selection (kernel/evolve.py). Neither humans nor kernel code
+  write its content; the kernel only scores trials with the frozen fitness in
+  evolve.py. Do not "improve" the methodology by hand.
 - Predictions are committed before execution; only the kernel writes `ledger.jsonl` and `archive/`.
 - A claim enters `archive/claims/` only if its `check.py` exits 0.
 - The agent-facing ledger tail (`ledger.tail(for_agent=True)`) must never show

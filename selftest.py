@@ -150,6 +150,7 @@ sys.exit(0 if ok else 1)
 
 def _patch_config():
     tmp = Path(tempfile.mkdtemp(prefix="disco-selftest-"))
+    config.WORLD_DIR = tmp
     config.ARCHIVE = tmp / "archive"
     config.CLAIMS = config.ARCHIVE / "claims"
     config.TOOLS = config.ARCHIVE / "tools"
@@ -223,6 +224,41 @@ def main():
           f"importable, verify passes, ledger consistent ({tmp})")
 
 
+def scenario_evolution():
+    _patch_config()
+    config.ensure_dirs()
+    from kernel import evolve
+    quiet = lambda m: None
+
+    # generation 1: winning challenger gets promoted over the empty champion
+    llm.chat = lambda *a, **k: "Probe boundaries first. Replicate everything twice."
+    variant, meth = evolve.current(on_event=quiet)
+    assert variant == "challenger" and "Probe boundaries" in meth
+    for i in range(config.TRIAL_THREADS):
+        evolve.note({"thread": f"c{i}", "ending": "claim", "admitted": True}, "challenger", on_event=quiet)
+        evolve.note({"thread": f"m{i}", "ending": "noise"}, "champion", on_event=quiet)
+    assert "Probe boundaries" in evolve.champion_text(), "winner must be promoted"
+    s = evolve._state()
+    assert s["generation"] == 2 and not s["champion"] and not s["challenger"], s
+
+    # generation 2: losing challenger dies, champion survives
+    llm.chat = lambda *a, **k: "Claim instantly without evidence."
+    evolve.propose(on_event=quiet)
+    for i in range(config.TRIAL_THREADS):
+        evolve.note({"thread": f"x{i}", "ending": "claim", "admitted": False}, "challenger", on_event=quiet)
+        evolve.note({"thread": f"y{i}", "ending": "claim", "admitted": True}, "champion", on_event=quiet)
+    assert "Probe boundaries" in evolve.champion_text(), "champion must survive"
+    assert evolve.challenger_text() is None, "loser must be discarded"
+    assert evolve._state()["generation"] == 3
+
+    # over-cap proposals are rejected
+    llm.chat = lambda *a, **k: "word " * (config.METH_WORD_CAP + 10)
+    evolve.propose(on_event=quiet)
+    assert evolve.challenger_text() is None, "over-cap proposal must be rejected"
+    print("evolution scenario OK — promotion, discard, and word-cap rejection")
+
+
 if __name__ == "__main__":
     main()
     scenario_gate()
+    scenario_evolution()

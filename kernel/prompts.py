@@ -18,11 +18,32 @@ that exits 0 iff the claim holds, non-zero otherwise). Unverifiable insights are
 
 Experiments run with stdlib Python, 30s timeout, no interactivity. Print what you need to see.
 
+Your methodology — self-authored, revised by selection on your own outcomes:
+{methodology}
+
 Your archive so far:
 {archive_index}
 
 Recent activity:
 {ledger_tail}"""
+
+EVOLVE_PROPOSE = """You are disco's methodology author. Below: the current methodology \
+(possibly empty) and evidence from recent discovery threads in this world.
+
+Write a REVISED methodology: concrete, imperative notes to your future self on how to \
+discover well in this world — how to pick questions, design experiments, when to keep \
+digging, when to claim, what to avoid. Maximum {cap} words. It will compete against the \
+current methodology over live threads; the variant whose threads produce more admitted \
+claims (and fewer rejected ones) becomes permanent. Ground every rule in the evidence — \
+do not restate the kernel protocol.
+
+Output ONLY the methodology text.
+
+CURRENT METHODOLOGY:
+{current}
+
+EVIDENCE:
+{evidence}"""
 
 OPEN_THREAD = """Start a thread. Either pick an open question from the archive or open new \
 territory whose outcome you genuinely cannot predict with confidence. Prefer questions where \

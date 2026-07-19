@@ -87,12 +87,36 @@ flowchart TB
     AU["audit — medium loop"] -->|"uplift: does the archive predict?"| CL
     VF -->|"evidence"| HU
     AU -->|"evidence"| HU
+
+    EV["evolve — methodology selection"] -->|"champion vs challenger strategy"| AG
+    GA -->|"thread outcomes score the variants"| EV
 ```
 
 The fast loop never sees the audit metric (no metric to game); the agent never writes
 the archive (only the gate does); curiosity itself is anchored — surprise is scored
 against a prediction committed *before* execution, by a judge that never saw the
 agent's reasoning.
+
+## Self-evolving methodology
+
+The agent's *strategy* — how it picks questions, designs experiments, decides when to
+claim — lives in `worlds/<name>/methodology.md`: self-authored text injected into its
+prompt, which the kernel never writes. It evolves by champion/challenger selection:
+
+1. A fresh model call proposes a challenger methodology from ledger evidence
+   (outcomes, rejections, culled claims). Capped at 350 words — bloat is a mutation
+   that dies at birth.
+2. Champion and challenger alternate live threads (4 each per generation).
+3. Frozen fitness scores each thread: admitted claim +3, rejected claim −2, honest
+   parked question +1, kernel-parked premature claim −0.5, parse/syntax failure −1.
+4. The winner becomes champion (ancestors kept in `methodology-history/`); the loser
+   is deleted; the next generation begins.
+
+The agent writes its own rules of conduct; reality decides which rulebook survives.
+`disco evolve` shows the current generation, champion text, and trial progress.
+Disable with `DISCO_EVOLVE=0`. Honest caveats: 4-vs-4 trials are noisy (real signal
+accumulates over generations), and fitness favoring admitted claims pressures toward
+easy truths — the audit's uplift measure is the counter-metric to watch.
 
 ## Usage
 
@@ -164,7 +188,10 @@ all outputs still land in `runs/`, `archive/`, `ledger.jsonl` exactly as with LM
 Env vars: `DISCO_WORLD` (default `python`), `DISCO_BACKEND` (`openai`|`claude`),
 `DISCO_BASE_URL`, `DISCO_MODEL`, `DISCO_CLAUDE_MODEL`, `DISCO_MAX_STEPS` (default 8),
 `DISCO_MIN_CLAIM` (experiments required before a claim is admissible, default 2),
-`DISCO_EXEC_TIMEOUT`, `DISCO_TEMPERATURE`.
+`DISCO_CULL_AFTER` (consecutive verify failures before a claim is demoted, default 2),
+`DISCO_EVOLVE` (`0` disables methodology evolution), `DISCO_TRIAL_THREADS` (threads
+per variant per generation, default 4), `DISCO_METH_CAP` (methodology word cap,
+default 350), `DISCO_EXEC_TIMEOUT`, `DISCO_TEMPERATURE`.
 
 ## Warning
 

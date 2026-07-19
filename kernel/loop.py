@@ -100,14 +100,18 @@ def judge_surprise(prediction: str, confidence: int, result: dict) -> dict:
     return {"surprise": surprise, "note": note}
 
 
-def run_thread(thread_id: str = None, on_event=print) -> dict:
+def run_thread(thread_id: str = None, on_event=print, methodology: str = None) -> dict:
     """One thread: up to MAX_STEPS experiments, ends in CLAIM/QUESTION/NOISE/exhausted."""
     config.ensure_dirs()
     thread_id = thread_id or time.strftime("%Y%m%d-%H%M%S")
     thread_dir = config.RUNS / thread_id
 
+    if methodology is None:
+        f = config.WORLD_DIR / "methodology.md"
+        methodology = f.read_text().strip() if f.exists() else ""
     system = prompts.KERNEL_SYSTEM.format(
         world=config.world_description(),
+        methodology=methodology or "(none yet — your threads will seed one)",
         archive_index=archive.index(),
         ledger_tail=ledger.tail(for_agent=True),
     )
@@ -146,7 +150,8 @@ def run_thread(thread_id: str = None, on_event=print) -> dict:
                         ledger.log("question", thread=thread_id, slug=slug,
                                    reason="premature claim parked")
                         on_event(f"  premature claim parked as question: {slug}")
-                        outcome.update({"ending": "question", "slug": slug, "steps": step - 1})
+                        outcome.update({"ending": "question", "slug": slug,
+                                        "parked": True, "steps": step - 1})
                         return outcome
                 if decision != "CONTINUE":
                     outcome.update(_finish(decision, payload, thread_id, trajectory, focus, on_event))
