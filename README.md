@@ -1,5 +1,23 @@
 # disco
 
+## ELI5
+
+Imagine a curious kid locked in a room with a computer and nothing else — no books,
+no teacher. The kid pokes at things, but with one house rule: **before every poke,
+write down what you think will happen.** When the computer does something different,
+that's the fun part — poke *there* again until it makes sense. When the kid finally
+understands something, they may write it on the wall — but only if they also write a
+test anyone can run to prove it, and only after checking it more than once. Useful
+gadgets the kid builds stay in a toolbox for tomorrow. Slowly the walls fill with
+proven facts and the toolbox with instruments — none of it taught, all of it earned.
+
+disco is that room. The kid is an LLM; the pokes are Python experiments; the wall is
+`archive/claims/`; the toolbox is `archive/tools/`. The harness never tells it what's
+true or what to try — it only enforces the house rules: predict first, reality decides,
+replicate before you claim, nothing enters the wall without a runnable proof.
+
+## Design
+
 A minimal discovery harness. Not an optimizer: no task set, no benchmark, no champion.
 The agent generates its own questions about its world (the Python software environment),
 commits falsifiable predictions before running experiments, and only what survives an
@@ -47,7 +65,13 @@ python3 disco.py run -n 5     # five discovery threads
 python3 disco.py status       # archive index + recent ledger
 python3 disco.py audit        # naive-agent uplift measurement
 python3 disco.py verify       # re-run every claim check (claims-rot audit)
+python3 disco.py reset        # fresh start — stashes archive/runs/ledger into attic/<ts>/
+python3 disco.py seed "sqlite transaction semantics" "when does a write lock actually engage?"
 ```
+
+`seed` is the human steering channel: it parks a question in `archive/open-questions/`,
+which the agent sees at the start of every thread and may pick up. Seed territory, not
+instructions — the discovering is its job.
 
 ### Claude backend
 

@@ -22,6 +22,27 @@ def cmd_verify(args):
     archive.verify_all()
 
 
+def cmd_seed(args):
+    config.ensure_dirs()
+    slug = archive.save_question(args.title, args.body or "(seeded by human — territory, not instructions)", "human-seed")
+    print(f"seeded open question: {slug}")
+
+
+def cmd_reset(args):
+    import shutil
+    import time
+    attic = config.ROOT / "attic" / time.strftime("%Y%m%d-%H%M%S")
+    attic.mkdir(parents=True)
+    moved = []
+    for path in (config.ARCHIVE, config.RUNS, config.LEDGER):
+        if path.exists():
+            shutil.move(str(path), str(attic / path.name))
+            moved.append(path.name)
+    config.ensure_dirs()
+    print(f"moved {', '.join(moved) or 'nothing'} -> {attic}")
+    print("archive is empty — everything is undiscovered again")
+
+
 def cmd_audit(args):
     audit.run(k=args.k)
 
@@ -47,6 +68,12 @@ def main():
     s.set_defaults(fn=cmd_status)
     v = sub.add_parser("verify", help="re-run all claim checks (claims-rot audit)")
     v.set_defaults(fn=cmd_verify)
+    rs = sub.add_parser("reset", help="fresh start: move archive/runs/ledger to attic/<ts>/")
+    rs.set_defaults(fn=cmd_reset)
+    sd = sub.add_parser("seed", help="park a human question in archive/open-questions/")
+    sd.add_argument("title", help="one-line territory to explore")
+    sd.add_argument("body", nargs="?", default="", help="optional context/details")
+    sd.set_defaults(fn=cmd_seed)
     args = p.parse_args()
     args.fn(args)
 
