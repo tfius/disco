@@ -1,0 +1,70 @@
+# disco
+
+A minimal discovery harness. Not an optimizer: no task set, no benchmark, no champion.
+The agent generates its own questions about its world (the Python software environment),
+commits falsifiable predictions before running experiments, and only what survives an
+executable check enters its knowledge archive.
+
+Design principle: **freeze the judge, free the mind.** The kernel contains zero domain
+knowledge — it bakes in exactly one meta-method (predict → test → compress → archive)
+and the agent discovers everything inside it.
+
+## Mechanics
+
+Each thread (up to 6 steps):
+
+1. **PREDICT** — the agent commits an expected outcome + confidence *before* execution.
+2. **RUN** — the kernel executes the experiment (subprocess, 30s timeout). Only oracle.
+3. **SURPRISE** — a separate judge call (fresh context, no memory of the agent's
+   reasoning) scores prediction vs. reality, 0–10. Kernel-logged, unfakeable.
+4. **BRANCH** — `CONTINUE` (dig deeper), `CLAIM` (ship a fact + runnable check),
+   `QUESTION` (park a surprise), or `NOISE` (surprise didn't shrink; abandon).
+
+Frozen rules:
+
+- **No claim without a check.** `check.py` must exit 0 or the claim is rejected.
+- **Learnability over novelty.** Interesting = surprise that shrinks under study.
+- **Only the kernel writes** the ledger and the archive.
+- **Tools are inherited.** `archive/tools/` is on the `PYTHONPATH` of every experiment —
+  reuse is executable, not citation.
+
+Three speeds:
+
+- fast — `disco run`: the surprise-driven loop above; never sees the audit metric
+- medium — `disco audit`: does the archive make a *fresh* model better at predicting
+  this world? uplift = accuracy(with archive) − accuracy(without)
+- slow — you: read the archive, seed domains, prune degenerate obsessions
+
+## Usage
+
+Requires Python 3.10+, stdlib only. An OpenAI-compatible endpoint must be up
+(default: LM Studio at `http://localhost:1234/v1`, model `qwen3.6-27b-med-slo@f16`).
+
+```sh
+python3 disco.py run -n 5     # five discovery threads
+python3 disco.py status       # archive index + recent ledger
+python3 disco.py audit        # naive-agent uplift measurement
+python3 disco.py verify       # re-run every claim check (claims-rot audit)
+```
+
+Config via env: `DISCO_BASE_URL`, `DISCO_MODEL`, `DISCO_MAX_STEPS`, `DISCO_EXEC_TIMEOUT`,
+`DISCO_TEMPERATURE`. Alternative backend: `DISCO_BACKEND=claude` drives the agent through
+`claude -p` (optionally `DISCO_CLAUDE_MODEL=sonnet`); all outputs still land in
+`runs/`, `archive/`, `ledger.jsonl` exactly as with LM Studio.
+
+## Warning
+
+Experiments are model-written Python executed on your machine as your user, with network
+access. This is an isolation boundary in the epistemic sense only, not a security sandbox.
+If that is a concern, run the whole harness inside a VM or container.
+
+## Layout
+
+```
+kernel/           frozen: loop, world (executor), archive rules, judge, audit
+archive/claims/   verified facts: claim.md + check.py + meta.json
+archive/tools/    reusable code, importable in experiments
+archive/open-questions/
+runs/             per-thread workdirs: predictions, code, results
+ledger.jsonl      append-only, kernel-written
+```

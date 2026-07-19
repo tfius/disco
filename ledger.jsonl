@@ -1,0 +1,4 @@
+{"ts": "2026-07-19T15:26:52", "kind": "step", "thread": "20260719-152621", "step": 1, "focus": "interpreter census \u2014 which CPython lives here (version, build, GIL mode, sizes) as baseline for all future claims", "confidence": 35, "surprise": 4, "judge_note": "Version came in 3.14.4 not 3.13.x \u2014 an explicitly named alternative \u2014 while every other particular (executable, GIL=True, maxsize, sizeofs, recursion, hash_rand) matched exactly.", "exit": 0, "timeout": false}
+{"ts": "2026-07-19T15:27:10", "kind": "tool", "thread": "20260719-152621", "name": "envprobe.py"}
+{"ts": "2026-07-19T15:27:10", "kind": "claim", "thread": "20260719-152621", "slug": "the-system-interpreter-at-usr-bin-python3-is-cpython-3-14-4", "admitted": true}
+{"ts": "2026-07-19T15:27:19", "kind": "verify", "total": 1, "passed": 1, "failed": []}
