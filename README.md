@@ -14,14 +14,18 @@ proven facts and the toolbox with instruments — none of it taught, all of it e
 **disco** is that room. The kid is an LLM; the pokes are Python experiments; the wall is
 `archive/claims/`; the toolbox is `archive/tools/`. The harness never tells it what's
 true or what to try — it only enforces the house rules: predict first, reality decides,
-replicate before you claim, nothing enters the wall without a runnable proof.
+replicate before you claim, nothing enters the wall without a runnable proof. And the
+room itself is swappable: point it at a different **world** — a codebase, a database, a
+simulated universe — and the same kid starts filling different walls (see [Worlds](#worlds)).
 
 ## Design
 
 A minimal discovery harness. Not an optimizer: no task set, no benchmark, no champion.
-The agent generates its own questions about its world (the Python software environment),
-commits falsifiable predictions before running experiments, and only what survives an
-executable check enters its knowledge archive.
+The agent generates its own questions about its **world** — a pluggable territory
+defined in `worlds/<name>/world.md`; the default world is the Python software
+environment of this machine — commits falsifiable predictions before running
+experiments, and only what survives an executable check enters that world's
+knowledge archive.
 
 Design principle: **freeze the judge, free the mind.** The kernel contains zero domain
 knowledge — it bakes in exactly one meta-method (predict → test → compress → archive)
@@ -202,9 +206,15 @@ If that is a concern, run the whole harness inside a VM or container.
 ## Layout
 
 ```
-kernel/                     frozen: loop, world (executor), archive rules, judge, audit
-worlds/<name>/world.md      territory description — the only domain-content file
-worlds/<name>/archive/      claims/ (claim.md + check.py + meta.json), tools/, open-questions/
-worlds/<name>/runs/         per-thread workdirs: predictions, code, results
-worlds/<name>/ledger.jsonl  append-only, kernel-written
+kernel/                         frozen: loop, world (executor), archive rules, judge,
+                                audit, evolve (methodology selection)
+worlds/<name>/world.md          territory description — the only domain-content file
+worlds/<name>/archive/          claims/ (claim.md + check.py + meta.json), tools/,
+                                open-questions/
+worlds/<name>/methodology.md    agent-authored strategy (absent until evolution
+                                promotes the first winner)
+worlds/<name>/methodology-history/  promoted ancestors, one per generation
+worlds/<name>/evolution.json    trial state: generation, per-variant outcomes
+worlds/<name>/runs/             per-thread workdirs: predictions, code, results
+worlds/<name>/ledger.jsonl      append-only, kernel-written
 ```
