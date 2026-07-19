@@ -27,10 +27,11 @@ predict → run → surprise → compress → archive. Design rationale in READM
   champion/challenger selection (kernel/evolve.py). Neither humans nor kernel code
   write its content; the kernel only scores trials with the frozen fitness in
   evolve.py. Do not "improve" the methodology by hand.
-- Predictions are committed before execution; only the kernel writes `ledger.jsonl` and `archive/`.
-- A claim enters `archive/claims/` only if its `check.py` exits 0.
+- Predictions are committed before execution; only the kernel writes each world's
+  `ledger.jsonl` and `archive/`.
+- A claim enters the world's `archive/claims/` only if its `check.py` exits 0.
 - The agent-facing ledger tail (`ledger.tail(for_agent=True)`) must never show
   audit/verify entries — the fast loop must not see its own audit metric.
-- Experiments run with `archive/tools/` on `PYTHONPATH`; never pass `-I`/`-E` to the
+- Experiments run with the world's `archive/tools/` on `PYTHONPATH`; never pass `-I`/`-E` to the
   experiment interpreter (kills tool inheritance).
 - Stdlib only. No third-party dependencies.
