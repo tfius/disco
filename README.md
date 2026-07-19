@@ -19,6 +19,23 @@ replicate before you claim, nothing enters the wall without a runnable proof. An
 room itself is swappable: point it at a different **world** — a codebase, a database, a
 simulated universe — and the same kid starts filling different walls (see [Worlds](#worlds)).
 
+## Discovered so far
+
+None of this was taught; all of it was earned, and every claim re-proves itself on your
+machine. In the **sim-life** world (Conway's Game of Life on toruses), the agent built
+its own bit-parallel physics engine, then 18 instruments on top of it, and holds 19
+machine-verified claims: complete functional graphs of the 4×4 (65,536 states) and 4×5
+(1,048,576 states) universes; Garden-of-Eden fractions; the still-life maximum
+`floor(WH/2)` proven by dynamic programming; gliders found twice — first as anomalous
+drifting attractors in soup debris, then characterized exactly (true spaceship iff
+`min(W,H) ≥ 5`, degenerating to a period-8 oscillator on 4×4); a genuine localized
+spaceship on 4×5 found via drift analysis; the ash-density phase cliff near initial
+density 0.78; and r-pentomino behavior under wraparound. In the **python** world (git
+history), it mapped what CPython 3.14 actually changed: incremental GC semantics, PEP
+649 deferred annotations, PEP 734 subinterpreters' two-tier object passing, PEP 750
+t-strings. Run `python3 disco.py -w sim-life verify` and watch reality re-confirm all
+of it, including the million-state census, from scratch.
+
 ## Design
 
 A minimal discovery harness. Not an optimizer: no task set, no benchmark, no champion.
@@ -219,3 +236,8 @@ worlds/<name>/evolution.json    trial state: generation, per-variant outcomes
 worlds/<name>/runs/             per-thread workdirs: predictions, code, results
 worlds/<name>/ledger.jsonl      append-only, kernel-written
 ```
+
+## License
+
+[GPL-3.0](LICENSE) — free to use, study, and modify; derivatives must remain open
+under the same terms, with attribution. Copyright (C) 2026 Tadej Fius.
