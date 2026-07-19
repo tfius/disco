@@ -32,7 +32,10 @@ def tail(n: int = 12, for_agent: bool = False) -> str:
         elif kind == "claim":
             out.append(f"- CLAIM {'admitted' if e.get('admitted') else 'REJECTED (check failed)'}: {e.get('slug')}")
         elif kind == "tool":
-            out.append(f"- tool archived: {e.get('name')}")
+            if e.get("rejected"):
+                out.append(f"- tool rejected: {e.get('rejected')}")
+            else:
+                out.append(f"- tool archived: {e.get('name')}")
         elif kind == "question":
             out.append(f"- question parked: {e.get('slug')}")
         elif kind == "noise":

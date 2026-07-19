@@ -203,6 +203,12 @@ def main():
     v = archive.verify_all(on_event=lambda m: None)
     assert v == {"total": 1, "passed": 1, "failed": []}, v
 
+    # stdlib-shadow guard: a tool named like a stdlib module must be rejected
+    name, reason = archive.save_tool("enum", "x = 1")
+    assert name is None and "stdlib" in reason, (name, reason)
+    name, reason = archive.save_tool("json", "x = 1")
+    assert name is None, "json must be rejected too"
+
     print(f"\nselftest OK — claim admitted ('{outcome['slug']}'), tool archived AND "
           f"importable, verify passes, ledger consistent ({tmp})")
 

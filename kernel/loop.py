@@ -222,12 +222,13 @@ def _parse_decision(resp: str):
 def _bank_tool(payload: dict, thread_id: str, on_event):
     if "tool" not in payload:
         return
-    name = archive.save_tool(payload["tool_name"], payload["tool"])
+    name, reason = archive.save_tool(payload["tool_name"], payload["tool"])
     if name:
         ledger.log("tool", thread=thread_id, name=name)
         on_event(f"  tool archived: {name}")
     else:
-        on_event("  tool rejected — does not compile")
+        ledger.log("tool", thread=thread_id, name=None, rejected=reason)
+        on_event(f"  tool rejected — {reason}")
 
 
 def _finish(decision, payload, thread_id, trajectory, focus, on_event) -> dict:

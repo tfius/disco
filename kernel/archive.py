@@ -46,15 +46,20 @@ def save_question(title: str, body: str, thread_id: str) -> str:
 
 
 def save_tool(name: str, code: str):
-    """Archive a reusable module. Returns filename, or None if it doesn't compile —
-    a broken tool would poison every future experiment's import path."""
+    """Archive a reusable module. Returns (filename, None) or (None, reason).
+    Rejected: stdlib-shadowing names (a tool named enum.py breaks `import fractions`
+    for every future experiment) and code that doesn't compile (poisons the path)."""
+    import sys
+    base = re.sub(r"[^a-z0-9_]", "_", name.removesuffix(".py").lower()).strip("_") or "tool"
+    if base in sys.stdlib_module_names:
+        return None, f"name '{base}' shadows a Python stdlib module — choose another name"
     try:
-        compile(code, name, "exec")
-    except SyntaxError:
-        return None
-    name = re.sub(r"[^a-z0-9_]", "_", name.removesuffix(".py").lower()) + ".py"
-    (config.TOOLS / name).write_text(code)
-    return name
+        compile(code, base, "exec")
+    except SyntaxError as e:
+        return None, f"does not compile: {e.msg} (line {e.lineno})"
+    filename = base + ".py"
+    (config.TOOLS / filename).write_text(code)
+    return filename, None
 
 
 def resolve_question(slug: str):
