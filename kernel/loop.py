@@ -127,6 +127,25 @@ def run_thread(thread_id: str = None, on_event=print) -> dict:
             if step > 1:
                 decision, payload = parsed
                 _bank_tool(payload, thread_id, on_event)
+                if decision == "CLAIM" and len(trajectory) < config.MIN_CLAIM_EXPERIMENTS:
+                    # replication gate: one observation is an anecdote — bounce once
+                    on_event("  claim refused — replication required")
+                    messages.append({"role": "user", "content": prompts.REPLICATE.format(
+                        n=len(trajectory), min=config.MIN_CLAIM_EXPERIMENTS)})
+                    resp, (decision, payload) = _ask(messages, _parse_decision)
+                    messages.append({"role": "assistant", "content": resp})
+                    _bank_tool(payload, thread_id, on_event)
+                    if decision == "CLAIM":  # insists — park it, kernel does not bend
+                        title = payload["claim"].strip().splitlines()[0][:80]
+                        slug = archive.save_question(
+                            "unreplicated: " + title,
+                            payload["claim"] + "\n\nproposed check:\n```python\n"
+                            + payload["check"] + "\n```", thread_id)
+                        ledger.log("question", thread=thread_id, slug=slug,
+                                   reason="premature claim parked")
+                        on_event(f"  premature claim parked as question: {slug}")
+                        outcome.update({"ending": "question", "slug": slug, "steps": step - 1})
+                        return outcome
                 if decision != "CONTINUE":
                     outcome.update(_finish(decision, payload, thread_id, trajectory, focus, on_event))
                     outcome["steps"] = step - 1
@@ -165,6 +184,7 @@ def run_thread(thread_id: str = None, on_event=print) -> dict:
             surprise=verdict["surprise"],
             judge_note=verdict["note"],
             trajectory=trajectory,
+            min_claim=config.MIN_CLAIM_EXPERIMENTS,
         )})
         outcome["steps"] = step
 

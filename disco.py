@@ -34,6 +34,7 @@ def cmd_status(args):
 
 
 def main():
+    sys.stdout.reconfigure(line_buffering=True)  # live progress even when piped/backgrounded
     p = argparse.ArgumentParser(prog="disco", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="run discovery threads")

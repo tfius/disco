@@ -88,7 +88,67 @@ sys.exit(0 if ok else 1)
 ]
 
 
-def main():
+GATE_SCRIPT = [
+    # step 1
+    """### FOCUS
+what does list.append return
+
+### PREDICTION
+prints the list itself, enabling chaining
+
+### CONFIDENCE
+55
+
+### EXPERIMENT
+```python
+print([1].append(2))
+```""",
+    '{"surprise": 6, "note": "printed None, not the list"}',
+    # premature claim after one experiment — kernel must refuse
+    """### DECISION
+CLAIM
+
+### CLAIM
+list.append returns None.
+
+### CHECK
+```python
+import sys; sys.exit(0 if [1].append(2) is None else 1)
+```""",
+    # replicate bounce -> agent continues
+    """### DECISION
+CONTINUE
+
+### PREDICTION
+None again for other mutators: sort and extend also return None
+
+### CONFIDENCE
+80
+
+### EXPERIMENT
+```python
+xs = [3, 1]
+print(xs.sort(), xs.extend([4]))
+```""",
+    '{"surprise": 0, "note": "None None as predicted"}',
+    # now backed by two experiments — admissible
+    """### DECISION
+CLAIM
+
+### CLAIM
+CPython list mutator methods (append, sort, extend) return None rather than the list.
+
+### CHECK
+```python
+import sys
+xs = [1]
+ok = xs.append(2) is None and xs.sort() is None and xs.extend([3]) is None
+sys.exit(0 if ok else 1)
+```""",
+]
+
+
+def _patch_config():
     tmp = Path(tempfile.mkdtemp(prefix="disco-selftest-"))
     config.ARCHIVE = tmp / "archive"
     config.CLAIMS = config.ARCHIVE / "claims"
@@ -96,6 +156,22 @@ def main():
     config.QUESTIONS = config.ARCHIVE / "open-questions"
     config.RUNS = tmp / "runs"
     config.LEDGER = tmp / "ledger.jsonl"
+    return tmp
+
+
+def scenario_gate():
+    _patch_config()
+    responses = iter(GATE_SCRIPT)
+    llm.chat = lambda *a, **k: next(responses)
+    outcome = loop.run_thread(thread_id="gate-test", on_event=lambda m: print(m))
+    assert outcome["ending"] == "claim" and outcome["admitted"], outcome
+    assert outcome["steps"] == 2, f"gate should have forced a second experiment: {outcome}"
+    assert not list(config.QUESTIONS.glob("*.md")), "nothing should be parked"
+    print("gate scenario OK — premature claim refused, replication forced, then admitted\n")
+
+
+def main():
+    tmp = _patch_config()
 
     responses = iter(SCRIPT)
     llm.chat = lambda *a, **k: next(responses)
@@ -133,3 +209,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    scenario_gate()

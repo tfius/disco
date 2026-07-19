@@ -18,7 +18,8 @@ RUNS = ROOT / "runs"
 LEDGER = ROOT / "ledger.jsonl"
 
 EXEC_TIMEOUT = int(os.environ.get("DISCO_EXEC_TIMEOUT", "30"))   # seconds per experiment
-MAX_STEPS = int(os.environ.get("DISCO_MAX_STEPS", "6"))          # experiment steps per thread
+MAX_STEPS = int(os.environ.get("DISCO_MAX_STEPS", "8"))          # experiment steps per thread
+MIN_CLAIM_EXPERIMENTS = int(os.environ.get("DISCO_MIN_CLAIM", "2"))  # replication gate
 LLM_TIMEOUT = int(os.environ.get("DISCO_LLM_TIMEOUT", "900"))    # seconds per model call
 AGENT_TEMPERATURE = float(os.environ.get("DISCO_TEMPERATURE", "0.8"))
 JUDGE_TEMPERATURE = 0.1

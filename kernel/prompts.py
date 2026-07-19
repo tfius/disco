@@ -47,6 +47,10 @@ STEP_RESULT = """RESULT:
 KERNEL SURPRISE SCORE: {surprise}/10 — {judge_note}
 Your surprise trajectory this thread: {trajectory}
 
+The kernel admits a claim only when backed by at least {min_claim} experiments in this \
+thread — one result is an anecdote. While surprise stays high and steps remain, digging \
+beats claiming.
+
 Decide. Respond in exactly this format:
 
 ### DECISION
@@ -61,6 +65,13 @@ NOISE — surprise did not shrink; unlearnable (add one line ### WHY). Ends the 
 
 Any decision may also include ### TOOL_NAME (one line) and ### TOOL (```python```) to \
 archive reusable code — it becomes importable in all future experiments."""
+
+REPLICATE = """Claim refused: it is backed by {n} experiment(s); the kernel requires at \
+least {min}. One result is an anecdote. Replicate from a different angle or push the \
+investigation further first.
+
+Respond with ### DECISION CONTINUE plus ### PREDICTION, ### CONFIDENCE, ### EXPERIMENT \
+(or QUESTION / NOISE if this genuinely cannot be probed further)."""
 
 SYNTAX_REPAIR = """Your experiment does not compile:
 {error}

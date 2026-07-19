@@ -11,7 +11,7 @@ and the agent discovers everything inside it.
 
 ## Mechanics
 
-Each thread (up to 6 steps):
+Each thread (up to 8 steps):
 
 1. **PREDICT** — the agent commits an expected outcome + confidence *before* execution.
 2. **RUN** — the kernel executes the experiment (subprocess, 30s timeout). Only oracle.
@@ -23,6 +23,8 @@ Each thread (up to 6 steps):
 Frozen rules:
 
 - **No claim without a check.** `check.py` must exit 0 or the claim is rejected.
+- **No claim without replication.** Claims backed by fewer than 2 experiments are
+  refused; if the agent insists, the kernel parks the claim as an open question.
 - **Learnability over novelty.** Interesting = surprise that shrinks under study.
 - **Only the kernel writes** the ledger and the archive.
 - **Tools are inherited.** `archive/tools/` is on the `PYTHONPATH` of every experiment —
@@ -47,10 +49,26 @@ python3 disco.py audit        # naive-agent uplift measurement
 python3 disco.py verify       # re-run every claim check (claims-rot audit)
 ```
 
-Config via env: `DISCO_BASE_URL`, `DISCO_MODEL`, `DISCO_MAX_STEPS`, `DISCO_EXEC_TIMEOUT`,
-`DISCO_TEMPERATURE`. Alternative backend: `DISCO_BACKEND=claude` drives the agent through
-`claude -p` (optionally `DISCO_CLAUDE_MODEL=sonnet`); all outputs still land in
-`runs/`, `archive/`, `ledger.jsonl` exactly as with LM Studio.
+### Claude backend
+
+With [Claude Code](https://claude.com/claude-code) installed and authenticated, the agent
+can run through `claude -p` instead of a local model — no LM Studio needed:
+
+```sh
+DISCO_BACKEND=claude python3 disco.py run -n 5
+DISCO_BACKEND=claude DISCO_CLAUDE_MODEL=sonnet python3 disco.py run -n 1   # pin a model
+DISCO_BACKEND=claude python3 disco.py audit
+```
+
+Each model call is a stateless `claude -p --output-format text --max-turns 1` subprocess;
+all outputs still land in `runs/`, `archive/`, `ledger.jsonl` exactly as with LM Studio.
+(Temperature is not controllable through the CLI; judge calls are less deterministic.)
+
+### Config
+
+Env vars: `DISCO_BACKEND` (`openai`|`claude`), `DISCO_BASE_URL`, `DISCO_MODEL`,
+`DISCO_CLAUDE_MODEL`, `DISCO_MAX_STEPS` (default 8), `DISCO_MIN_CLAIM` (experiments
+required before a claim is admissible, default 2), `DISCO_EXEC_TIMEOUT`, `DISCO_TEMPERATURE`.
 
 ## Warning
 
