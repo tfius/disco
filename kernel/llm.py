@@ -50,7 +50,7 @@ def chat(messages, temperature=None, max_tokens=None, retries=2):
     raise RuntimeError(f"LLM call failed after {retries + 1} attempts: {last_err}")
 
 
-def _chat_claude(messages, retries=2):
+def _chat_claude(messages, retries=3):
     """Backend: `claude -p` in pure text mode. Stateless — the transcript is flattened
     into one prompt per call; disco's kernel remains the only writer of state.
     temperature/max_tokens are not controllable through the CLI and are ignored."""
@@ -59,7 +59,10 @@ def _chat_claude(messages, retries=2):
     convo = "\n\n".join(
         f"[{m['role'].upper()}]\n{m['content']}" for m in messages if m["role"] != "system"
     ) + "\n\n[ASSISTANT]"
-    cmd = ["claude", "-p", "--output-format", "text", "--max-turns", "1"]
+    # tools disabled: this must be a pure text completion — a model reaching for a
+    # tool would burn the single turn and exit with "Reached max turns"
+    cmd = ["claude", "-p", "--output-format", "text", "--max-turns", "1",
+           "--disallowedTools", "*"]
     if system:
         cmd += ["--append-system-prompt", system]
     if config.CLAUDE_MODEL:
@@ -71,11 +74,12 @@ def _chat_claude(messages, retries=2):
                                timeout=config.LLM_TIMEOUT)
             if p.returncode == 0 and p.stdout.strip():
                 return strip_think(p.stdout)
-            last_err = f"exit {p.returncode}: {p.stderr.strip()[:300]}"
+            last_err = (f"exit {p.returncode}: stderr={p.stderr.strip()[:200]!r} "
+                        f"stdout={p.stdout.strip()[:200]!r}")
         except (subprocess.TimeoutExpired, OSError) as e:
             last_err = e
         if attempt < retries:
-            time.sleep(2 * (attempt + 1))
+            time.sleep(5 * (attempt + 1))
     raise RuntimeError(f"claude -p failed after {retries + 1} attempts: {last_err}")
 
 

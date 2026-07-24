@@ -121,3 +121,5 @@
 {"ts": "2026-07-24T13:56:27", "kind": "step", "thread": "20260724-135445", "step": 3, "focus": "On 6\u00d76 toroidal Life grids, do random density-0.5 soups relax to short-period attractors (period \u2264 4)?", "confidence": 45, "surprise": 1, "judge_note": "Prediction: 90%+ of 6\u00d76 soups period \u2264 4. Actual: 97.5%. Exceeds threshold, matches expectation.", "exit": 0, "timeout": false}
 {"ts": "2026-07-24T13:56:50", "kind": "claim", "thread": "20260724-135445", "slug": "on-6-6-toroidal-life-grids-random-density-0-5-soups-relax-to", "admitted": true}
 {"ts": "2026-07-24T13:58:32", "kind": "verify", "total": 20, "passed": 20, "failed": [], "culled": []}
+{"ts": "2026-07-24T13:59:25", "kind": "verify", "total": 20, "passed": 20, "failed": [], "culled": []}
+{"ts": "2026-07-24T14:02:46", "kind": "verify", "total": 20, "passed": 20, "failed": [], "culled": []}
