@@ -1,0 +1,1 @@
+On 6×6 toroidal Life grids, random density-0.5 soups relax to short-period attractors: approximately 97% reach period ≤ 4 within 10,000 steps, dominated by period-1 (still lifes, ~79% of all soups) and period-2 oscillators (~18%), with period-4 and higher cycles rare (<3% combined).
