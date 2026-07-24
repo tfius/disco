@@ -233,7 +233,9 @@ worlds/<name>/methodology.md    agent-authored strategy (absent until evolution
                                 promotes the first winner)
 worlds/<name>/methodology-history/  promoted ancestors, one per generation
 worlds/<name>/evolution.json    trial state: generation, per-variant outcomes
-worlds/<name>/runs/             per-thread workdirs: predictions, code, results
+worlds/<name>/runs/             per-thread workdirs: predictions, code, results, and
+                                messages.jsonl — the full transcript, so any thread
+                                can be replayed or forked
 worlds/<name>/ledger.jsonl      append-only, kernel-written
 ```
 

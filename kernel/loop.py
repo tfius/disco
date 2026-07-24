@@ -124,6 +124,17 @@ def run_thread(thread_id: str = None, on_event=print, methodology: str = None) -
     focus = ""
     outcome = {"thread": thread_id, "ending": "exhausted", "steps": 0}
 
+    try:
+        return _run_steps(thread_id, thread_dir, messages, trajectory, focus, outcome, on_event)
+    finally:
+        # full transcript persisted on every exit path — threads are replayable/forkable
+        thread_dir.mkdir(parents=True, exist_ok=True)
+        with open(thread_dir / "messages.jsonl", "w") as f:
+            for m in messages:
+                f.write(json.dumps(m) + "\n")
+
+
+def _run_steps(thread_id, thread_dir, messages, trajectory, focus, outcome, on_event):
     for step in range(1, config.MAX_STEPS + 1):
         parser = (lambda r: _experiment_fields(_sections(r))) if step == 1 else _parse_decision
         try:

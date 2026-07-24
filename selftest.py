@@ -193,6 +193,12 @@ def main():
     assert "int" in idx and "identity_probe" in idx
     assert "same_object_across_exec(literal_src)" in idx, f"signature missing from index:\n{idx}"
 
+    # replay: the full message transcript must be persisted
+    transcript = [json.loads(l) for l in
+                  (config.RUNS / "selftest" / "messages.jsonl").read_text().splitlines()]
+    assert transcript[0]["role"] == "system" and transcript[-1]["role"] == "assistant"
+    assert len(transcript) >= 7, f"transcript too short: {len(transcript)}"
+
     # tool inheritance: archived tools must be importable in later experiments
     r = world.run_python(
         "from identity_probe import same_object_across_exec\n"
