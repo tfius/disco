@@ -1,0 +1,1 @@
+For Rule 30 on a periodic binary tape, started from the single-1 seed (bit 0 set, rest 0), the pre-cycle transient length is not bounded above by the tape width: at width=11 the transient is 23 steps (>11), and at width=12 the transient is 24 steps (>12), computed deterministically via the standard 3-neighbor local rule with wraparound.

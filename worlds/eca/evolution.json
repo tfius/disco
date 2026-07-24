@@ -1,0 +1,27 @@
+{
+  "generation": 1,
+  "champion": [
+    {
+      "thread": "20260724-142515",
+      "ending": "parse-failure",
+      "score": -1.0
+    },
+    {
+      "thread": "20260724-142646",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ],
+  "challenger": [
+    {
+      "thread": "20260724-142409",
+      "ending": "claim",
+      "score": 3.0
+    },
+    {
+      "thread": "20260724-142526",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ]
+}
