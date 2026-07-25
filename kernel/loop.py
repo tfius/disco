@@ -238,10 +238,18 @@ def _parse_decision(resp: str):
 def _bank_tool(payload: dict, thread_id: str, on_event):
     if "tool" not in payload:
         return
+    existing = {t.stem for t in config.TOOLS.glob("*.py")} if config.TOOLS.exists() else set()
     name, reason = archive.save_tool(payload["tool_name"], payload["tool"])
     if name:
         ledger.log("tool", thread=thread_id, name=name)
         on_event(f"  tool archived: {name}")
+        stem = name[:-3]
+        if stem in existing:  # overwrite: cascade-verify the blast radius now
+            deps = archive.dependents(stem)
+            if deps:
+                on_event(f"  tool {stem} overwritten — cascade-verifying "
+                         f"{len(deps)} dependent claim(s)")
+                archive.verify_all(on_event=on_event, only=deps)
     else:
         ledger.log("tool", thread=thread_id, name=None, rejected=reason)
         on_event(f"  tool rejected — {reason}")

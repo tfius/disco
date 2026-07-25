@@ -14,6 +14,7 @@ predict → run → surprise → compress → archive. Design rationale in READM
 - `python3 disco.py genworld <seed> [--family ca|modpoly|tag]` — contamination-free random world
 - `python3 disco.py stats` / `deps` — discovery metrics, claim→tool dependency graph
 - `python3 disco.py grind <seeds...> -n T` — batch: generate worlds + run + export
+- `python3 disco.py run --agents a,b` / `calib` / `coevolve` — multi-agent science, calibration, POET loop
 
 ## Backends
 

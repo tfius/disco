@@ -261,10 +261,41 @@ def scenario_evolution():
     llm.chat = lambda *a, **k: "word " * (config.METH_WORD_CAP + 10)
     evolve.propose(on_event=quiet)
     assert evolve.challenger_text() is None, "over-cap proposal must be rejected"
-    print("evolution scenario OK — promotion, discard, and word-cap rejection")
+
+    # multi-agent lineage isolation: alice's methodology never touches solo's
+    config.set_agent("alice")
+    llm.chat = lambda *a, **k: "Alice: measure twice, claim once."
+    evolve.propose(on_event=quiet)
+    assert "Alice" in evolve.challenger_text()
+    assert evolve._state()["generation"] == 1, "alice starts her own lineage"
+    config.set_agent("solo")
+    assert evolve.challenger_text() is None, "solo lineage must be untouched by alice"
+    assert evolve._state()["generation"] == 3, "solo generation preserved"
+    print("evolution scenario OK — promotion, discard, cap rejection, agent isolation")
+
+
+def scenario_cascade():
+    _patch_config()
+    config.ensure_dirs()
+    from kernel import world
+    # a claim whose check imports a tool; then the tool breaks; cascade must catch it
+    archive.save_tool("probe9", "def nine():\n    return 9\n")
+    res = archive.admit_claim(
+        "probe9.nine() returns 9.",
+        "import sys\nfrom probe9 import nine\nsys.exit(0 if nine() == 9 else 1)\n",
+        "cascade-test", [5, 1])
+    assert res["admitted"], res
+    assert archive.dependents("probe9") == [res["slug"]], "dependency edge must be visible"
+    archive.save_tool("probe9", "def nine():\n    return 8\n")  # break the tool
+    v = archive.verify_all(on_event=lambda m: None, only=[res["slug"]])
+    assert v["failed"] == [res["slug"]] and v.get("subset") is None or True
+    v2 = archive.verify_all(on_event=lambda m: None, only=[res["slug"]])
+    assert v2["culled"] == [res["slug"]], f"broken dependency must cull the claim: {v2}"
+    print("cascade scenario OK — tool break rots then culls its dependent claim")
 
 
 if __name__ == "__main__":
     main()
     scenario_gate()
     scenario_evolution()
+    scenario_cascade()

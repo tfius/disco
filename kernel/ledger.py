@@ -6,7 +6,8 @@ from . import config
 
 
 def log(kind: str, **fields):
-    entry = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "kind": kind, **fields}
+    entry = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S"), "kind": kind,
+             "agent": config.AGENT, **fields}
     with open(config.LEDGER, "a") as f:
         f.write(json.dumps(entry) + "\n")
     return entry

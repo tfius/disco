@@ -59,6 +59,12 @@ def save_tool(name: str, code: str):
         return None, f"does not compile: {e.msg} (line {e.lineno})"
     filename = base + ".py"
     (config.TOOLS / filename).write_text(code)
+    # kill stale bytecode: .pyc validation is (mtime-seconds, size), so a same-size
+    # overwrite within one second silently keeps executing the OLD tool
+    pycache = config.TOOLS / "__pycache__"
+    if pycache.exists():
+        for pyc in pycache.glob(f"{base}.*.pyc"):
+            pyc.unlink()
     return filename, None
 
 
@@ -77,12 +83,25 @@ def tool_imports(code: str) -> list:
     return sorted(found)
 
 
-def verify_all(on_event=print) -> dict:
-    """Claims-rot audit with selection: re-run every archived check. A claim whose
-    check fails reality CULL_AFTER times in a row is demoted to an open question —
-    the archive is a population and verify is its environment."""
+def dependents(tool_stem: str) -> list:
+    """Claims whose checks import this tool — the blast radius of a tool change."""
+    out = []
+    for d in (sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []):
+        check = d / "check.py"
+        if check.exists() and tool_stem in tool_imports(check.read_text()):
+            out.append(d.name)
+    return out
+
+
+def verify_all(on_event=print, only=None) -> dict:
+    """Claims-rot audit with selection: re-run archived checks (all, or the `only`
+    subset for cull cascades). A claim whose check fails reality CULL_AFTER times
+    in a row is demoted to an open question — the archive is a population and
+    verify is its environment."""
     from . import ledger
     claims = sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []
+    if only is not None:
+        claims = [d for d in claims if d.name in set(only)]
     failed, culled = [], []
     for d in claims:
         check = d / "check.py"
@@ -115,6 +134,8 @@ def verify_all(on_event=print) -> dict:
             on_event(f"  ROTTED: {d.name} (consecutive fails: {fails}/{config.CULL_AFTER}){dep_note}")
     entry = {"total": len(claims), "passed": len(claims) - len(failed),
              "failed": failed, "culled": culled}
+    if only is not None:
+        entry["subset"] = True
     ledger.log("verify", **entry)
     on_event(f"verify: {entry['passed']}/{entry['total']} claim checks still pass"
              + (f", {len(culled)} culled" if culled else ""))

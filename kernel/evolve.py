@@ -26,28 +26,49 @@ SCORES = {
 PROMOTE_MARGIN = 0.25
 
 
+def _sfx():
+    """Per-agent lineage suffix; 'solo' keeps the legacy single-agent file names."""
+    return "" if config.AGENT == "solo" else f"-{config.AGENT}"
+
+
 def _path(name):
     return config.WORLD_DIR / name
 
 
+def _state_file():
+    return _path(f"evolution{_sfx()}.json")
+
+
+def _champ_file():
+    return _path(f"methodology{_sfx()}.md")
+
+
+def _chal_file():
+    return _path(f"methodology{_sfx()}.challenger.md")
+
+
+def _hist_dir():
+    return _path(f"methodology-history{_sfx()}")
+
+
 def _state() -> dict:
-    f = _path("evolution.json")
+    f = _state_file()
     if f.exists():
         return json.loads(f.read_text())
     return {"generation": 1, "champion": [], "challenger": []}
 
 
 def _save(state):
-    _path("evolution.json").write_text(json.dumps(state, indent=2))
+    _state_file().write_text(json.dumps(state, indent=2))
 
 
 def champion_text() -> str:
-    f = _path("methodology.md")
+    f = _champ_file()
     return f.read_text().strip() if f.exists() else ""
 
 
 def challenger_text():
-    f = _path("methodology.challenger.md")
+    f = _chal_file()
     return f.read_text().strip() if f.exists() else None
 
 
@@ -98,11 +119,11 @@ def _resolve(s, on_event):
     if promoted:
         old = champion_text()
         if old:
-            hist = _path("methodology-history")
+            hist = _hist_dir()
             hist.mkdir(exist_ok=True)
             (hist / f"gen-{s['generation']}.md").write_text(old + "\n")
-        _path("methodology.md").write_text(challenger_text() + "\n")
-    _path("methodology.challenger.md").unlink()
+        _champ_file().write_text(challenger_text() + "\n")
+    _chal_file().unlink()
     ledger.log("evolution", event="promoted" if promoted else "discarded",
                generation=s["generation"], champion_score=round(champ, 2),
                challenger_score=round(chal, 2))
@@ -153,6 +174,6 @@ def propose(on_event=print):
                    reason=f"empty or over {config.METH_WORD_CAP}-word cap")
         on_event("  evolution: proposal rejected (empty or over word cap)")
         return
-    _path("methodology.challenger.md").write_text(text + "\n")
+    _chal_file().write_text(text + "\n")
     ledger.log("evolution", event="proposed", generation=_state()["generation"])
     on_event(f"  evolution gen {_state()['generation']}: challenger methodology proposed")

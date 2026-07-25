@@ -157,6 +157,9 @@ python3 disco.py deps         # claim -> tool dependency graph
 python3 disco.py export       # threads -> training episodes (JSONL)
 python3 disco.py genworld 7 --family modpoly   # contamination-free random world
 python3 disco.py grind 100 101 102 -n 3        # batch: generate + run + export
+python3 disco.py run -n 8 --agents alice,bob   # multi-agent: shared archive, own methodologies
+python3 disco.py calib        # cross-world calibration: confidence vs surprise
+python3 disco.py coevolve     # POET loop: world population at the competence frontier
 ```
 
 `seed` is the human steering channel: it parks a question in the world's `archive/open-questions/`,

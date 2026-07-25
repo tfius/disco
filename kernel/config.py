@@ -41,6 +41,15 @@ def set_world(name: str):
 set_world(os.environ.get("DISCO_WORLD", "python"))
 
 
+def set_agent(name: str):
+    """Agent identity for multi-agent science. 'solo' keeps legacy file names."""
+    global AGENT
+    AGENT = name
+
+
+set_agent(os.environ.get("DISCO_AGENT", "solo"))
+
+
 def world_description() -> str:
     """Territory text injected into the kernel prompt — the only domain-content file."""
     f = WORLD_DIR / "world.md"

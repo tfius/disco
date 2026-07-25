@@ -4,9 +4,14 @@ First-contact surprise separates recall from discovery (documented worlds open
 0-3, generated worlds 5-8); closure rate is the trainable quantity.
 """
 import json
+import re
 from collections import defaultdict
 
 from . import config
+
+
+def _tokens(s):
+    return set(re.findall(r"[a-z0-9]+", (s or "").lower()))
 
 
 def compute() -> dict:
@@ -15,6 +20,7 @@ def compute() -> dict:
     threads = defaultdict(list)   # thread -> [surprise per step, in order]
     endings = defaultdict(int)
     admitted = 0
+    thread_agent, thread_focus = {}, {}
     for line in config.LEDGER.read_text().splitlines():
         try:
             e = json.loads(line)
@@ -22,6 +28,9 @@ def compute() -> dict:
             continue
         if e.get("kind") == "step" and e.get("surprise") is not None:
             threads[e["thread"]].append(e["surprise"])
+            thread_agent.setdefault(e["thread"], e.get("agent", "solo"))
+            if e.get("focus"):
+                thread_focus.setdefault(e["thread"], e["focus"])
         elif e.get("kind") in ("claim", "question", "noise") and e.get("thread"):
             endings[e["kind"]] += 1
             if e.get("kind") == "claim" and e.get("admitted"):
@@ -33,7 +42,7 @@ def compute() -> dict:
     firsts = [tr[0] for tr in ordered if tr]
     multi = [tr for tr in ordered if len(tr) >= 2]
     closure = [tr[0] - tr[-1] for tr in multi]  # positive = surprise closed
-    return {
+    out = {
         "threads": len(ordered),
         "steps": len(all_s),
         "endings": dict(endings),
@@ -45,6 +54,20 @@ def compute() -> dict:
         "first_contact_surprise": round(sum(ordered[0]) / len(ordered[0]), 2) if ordered[0] else None,
         "mean_steps_per_thread": round(len(all_s) / len(ordered), 2),
     }
+    agents = sorted({a for a in thread_agent.values()})
+    if len(agents) > 1:
+        out["agents"] = {a: sum(1 for t, ag in thread_agent.items() if ag == a)
+                         for a in agents}
+        # crowding: how similar each thread's focus is to the OTHER agents' foci
+        sims = []
+        for t, f in thread_focus.items():
+            mine, toks = thread_agent.get(t, "solo"), _tokens(f)
+            others = [_tokens(f2) for t2, f2 in thread_focus.items()
+                      if thread_agent.get(t2) != mine]
+            if toks and others:
+                sims.append(max(len(toks & o) / len(toks | o) for o in others if toks | o))
+        out["crowding_overlap"] = round(sum(sims) / len(sims), 3) if sims else None
+    return out
 
 
 def render(s: dict) -> str:
@@ -59,4 +82,7 @@ def render(s: dict) -> str:
     if s["mean_closure"] is not None:
         lines.append(f"closure: mean {s['mean_closure']} per multi-step thread "
                      f"({s['closed_threads']} threads closed surprise)")
+    if "agents" in s:
+        lines.append(f"agents: {s['agents']} — crowding overlap {s['crowding_overlap']} "
+                     f"(division of labor if well below ~0.5)")
     return "\n".join(lines)

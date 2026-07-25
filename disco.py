@@ -8,14 +8,20 @@ import sys
 from kernel import archive, audit, config, evolve, export, ledger, loop
 
 
-def _run_session(n) -> bool:
-    """Run n threads in the current world. Returns False on backend abort."""
+def _run_session(n, agents=None) -> bool:
+    """Run n threads in the current world, optionally interleaving agent
+    identities (each agent has its own methodology lineage; the archive is
+    shared). Returns False on backend abort."""
     if config.CLAIMS.exists() and any(config.CLAIMS.iterdir()):
         print("pre-run verify (selection):")
         archive.verify_all()
     evolving = os.environ.get("DISCO_EVOLVE", "1") != "0"
     for i in range(n):
-        print(f"thread {i + 1}/{n}")
+        if agents:
+            config.set_agent(agents[i % len(agents)])
+            print(f"thread {i + 1}/{n} [agent {config.AGENT}]")
+        else:
+            print(f"thread {i + 1}/{n}")
         try:
             variant, methodology = evolve.current() if evolving else ("champion", None)
             if evolving:
@@ -31,7 +37,8 @@ def _run_session(n) -> bool:
 
 
 def cmd_run(args):
-    _run_session(args.n)
+    agents = [a.strip() for a in args.agents.split(",")] if args.agents else None
+    _run_session(args.n, agents=agents)
 
 
 def cmd_grind(args):
@@ -93,8 +100,8 @@ def cmd_evolve(args):
     s = evolve._state()
     champ = evolve.champion_text()
     chal = evolve.challenger_text()
-    hist = config.WORLD_DIR / "methodology-history"
-    print(f"world: {config.WORLD} — generation {s['generation']}, "
+    hist = evolve._hist_dir()
+    print(f"world: {config.WORLD} — agent {config.AGENT} — generation {s['generation']}, "
           f"{len(list(hist.glob('gen-*.md'))) if hist.exists() else 0} promoted ancestors")
     print(f"\nchampion methodology:\n{champ or '(empty — never evolved)'}")
     if chal is not None:
@@ -121,8 +128,9 @@ GEN_CLOSING = ("This system was generated at random from seed {seed}; nothing ab
                "exact, seeded, and checked by re-running the system.\n")
 
 
-def _gen_ca(rng, seed):
-    k, r = rng.choice([(2, 2), (3, 1)])  # never (2,1): elementary CAs are documented
+def _gen_ca(rng, seed, difficulty=0):
+    tiers = [[(2, 2), (3, 1)], [(3, 2)], [(4, 2)]]
+    k, r = rng.choice(tiers[min(difficulty, 2)])  # never (2,1): elementary CAs are documented
     n = k ** (2 * r + 1)
     table = [rng.randrange(k) for _ in range(n)]
     table[0] = 0  # quiescent background so structure has somewhere to live
@@ -136,8 +144,9 @@ def _gen_ca(rng, seed):
             f"particles and their collisions, statistical behavior of random tapes. ")
 
 
-def _gen_modpoly(rng, seed):
-    m = rng.randrange(53, 251)
+def _gen_modpoly(rng, seed, difficulty=0):
+    lo, hi = [(53, 251), (251, 1500), (1500, 8000)][min(difficulty, 2)]
+    m = rng.randrange(lo, hi)
     coeffs = [rng.randrange(m) for _ in range(4)]  # a0 + a1 x + a2 x^2 + a3 x^3
     return (f"x -> ({coeffs[3]}x^3+{coeffs[2]}x^2+{coeffs[1]}x+{coeffs[0]}) mod {m}",
             f"Your world is the dynamical system f(x) = ({coeffs[3]}*x**3 + "
@@ -149,25 +158,29 @@ def _gen_modpoly(rng, seed):
             f"find. The full graph is exhaustively computable — exact claims only. ")
 
 
-def _gen_tag(rng, seed):
+def _gen_tag(rng, seed, difficulty=0):
     d = rng.choice([2, 3])
-    prods = {s: "".join(rng.choice("ab") for _ in range(rng.randrange(0, 5)))
-             for s in "ab"}
-    return (f"tag system d={d}, a->{prods['a'] or 'ε'}, b->{prods['b'] or 'ε'}",
-            f"Your world is a tag system on the alphabet {{a, b}}: at each step, if "
-            f"the word has fewer than {d} symbols the system halts; otherwise read "
-            f"the first symbol, delete the first {d} symbols, and append 'a' -> "
-            f"'{prods['a']}' or 'b' -> '{prods['b']}' (empty string allowed). "
+    alphabet = "ab" if difficulty == 0 else "abc"
+    maxlen = 5 + 2 * min(difficulty, 3)
+    prods = {s: "".join(rng.choice(alphabet) for _ in range(rng.randrange(0, maxlen)))
+             for s in alphabet}
+    rules = ", ".join(f"'{s}' -> '{prods[s]}'" for s in alphabet)
+    return (f"tag system d={d}, " + ", ".join(f"{s}->{prods[s] or 'ε'}" for s in alphabet),
+            f"Your world is a tag system on the alphabet {{{', '.join(alphabet)}}}: at "
+            f"each step, if the word has fewer than {d} symbols the system halts; "
+            f"otherwise read the first symbol, delete the first {d} symbols, and append "
+            f"its production: {rules} (empty string allowed). "
             f"Discover: which initial words halt, grow forever, or cycle; growth "
             f"rates; periodic structures; decidable non-halting patterns. Bound every "
             f"simulation with explicit step budgets, and phrase non-halting claims "
             f"only via decidable certificates. ")
 
 
-def _genworld_create(family, seed, must_create=True) -> str:
+def _genworld_create(family, seed, must_create=True, difficulty=0) -> str:
     import random as _random
     rng = _random.Random(f"{family}-{seed}")
-    summary, body = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag}[family](rng, seed)
+    summary, body = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag}[family](
+        rng, seed, difficulty)
     name = f"gen-{seed}" if family == "ca" else f"gen-{family}-{seed}"
     config.set_world(name)
     if (config.WORLD_DIR / "world.md").exists():
@@ -183,8 +196,92 @@ def _genworld_create(family, seed, must_create=True) -> str:
 def cmd_genworld(args):
     """Procedurally generated world — rules rolled from a seed, so their truths
     cannot exist in any pretraining corpus. The contamination-free territories."""
-    name = _genworld_create(args.family, args.seed)
+    name = _genworld_create(args.family, args.seed, difficulty=args.difficulty)
     print(f"run: python3 disco.py -w {name} run -n 3")
+
+
+def cmd_calib(args):
+    """Cross-world calibration: stated confidence vs judged surprise. High
+    confidence should mean low surprise; r is the anti-correlation to watch."""
+    pairs = []
+    for wd in sorted(config.WORLDS.iterdir()):
+        lf = wd / "ledger.jsonl"
+        if not lf.is_file():
+            continue
+        for line in lf.read_text().splitlines():
+            try:
+                e = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if e.get("kind") == "step" and e.get("confidence") is not None \
+                    and e.get("surprise") is not None:
+                pairs.append((e["confidence"], e["surprise"]))
+    if not pairs:
+        print("(no calibration data yet)")
+        return
+    buckets = {}
+    for c, s in pairs:
+        b = min(c // 20, 4)
+        buckets.setdefault(b, []).append(s)
+    print(f"{len(pairs)} (confidence, surprise) pairs across all worlds:")
+    for b in sorted(buckets):
+        ss = buckets[b]
+        print(f"  confidence {b*20:>3}-{b*20+19:<3}: mean surprise "
+              f"{sum(ss)/len(ss):.2f}  (n={len(ss)})")
+    n = len(pairs)
+    mc = sum(c for c, _ in pairs) / n
+    ms = sum(s for _, s in pairs) / n
+    cov = sum((c - mc) * (s - ms) for c, s in pairs)
+    vc = sum((c - mc) ** 2 for c, _ in pairs) ** 0.5
+    vs = sum((s - ms) ** 2 for _, s in pairs) ** 0.5
+    r = cov / (vc * vs) if vc and vs else 0.0
+    print(f"correlation(confidence, surprise) = {r:.3f}  "
+          f"(calibrated agents are strongly negative)")
+
+
+def cmd_coevolve(args):
+    """POET-shaped loop: keep a population of generated worlds at the frontier
+    of the agent's competence — graduate the too-easy (raising difficulty),
+    park the too-hard (lowering it), roll replacements, run sessions, export."""
+    from kernel import stats
+    state_file = config.ROOT / "coevolve.json"
+    st = json.loads(state_file.read_text()) if state_file.exists() else \
+        {"active": [], "retired": [], "next_seed": 1000, "difficulty": 0}
+    families = ["ca", "modpoly", "tag"]
+    try:
+        while len(st["active"]) < args.pop:
+            fam = families[st["next_seed"] % len(families)]
+            name = _genworld_create(fam, st["next_seed"], must_create=False,
+                                    difficulty=st["difficulty"])
+            st["active"].append(name)
+            st["next_seed"] += 1
+        for name in list(st["active"]):
+            config.set_world(name)
+            print(f"===== coevolve: {name} (difficulty {st['difficulty']})")
+            if not _run_session(args.n):
+                print("backend down — stopping coevolve", file=sys.stderr)
+                return
+            s = stats.compute()
+            path, count = export.episodes()
+            print(stats.render(s))
+            print(f"exported {count} episodes -> {path}")
+            if s and s["threads"] >= args.judge_after:
+                rate = s["admitted"] / s["threads"]
+                if rate >= 0.75 and s["mean_surprise"] <= 3:
+                    print(f"  GRADUATED (too easy: admit {rate:.0%}, "
+                          f"surprise {s['mean_surprise']}) — difficulty up")
+                    st["active"].remove(name)
+                    st["retired"].append({"name": name, "why": "graduated"})
+                    st["difficulty"] += 1
+                elif s["admitted"] == 0:
+                    print("  PARKED (too hard: nothing admitted) — difficulty down")
+                    st["active"].remove(name)
+                    st["retired"].append({"name": name, "why": "too-hard"})
+                    st["difficulty"] = max(0, st["difficulty"] - 1)
+    finally:
+        state_file.write_text(json.dumps(st, indent=2))
+        print(f"coevolve state: {len(st['active'])} active, "
+              f"{len(st['retired'])} retired, difficulty {st['difficulty']}")
 
 
 def cmd_deps(args):
@@ -246,6 +343,8 @@ def main():
     sub = p.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="run discovery threads")
     r.add_argument("-n", type=int, default=1, help="number of threads")
+    r.add_argument("--agents", default=None,
+                   help="comma-separated agent names to interleave (shared archive, per-agent methodology)")
     r.set_defaults(fn=cmd_run)
     a = sub.add_parser("audit", help="measure archive uplift on a naive agent")
     a.add_argument("-k", type=int, default=8, help="samples")
@@ -275,7 +374,16 @@ def main():
     gw.add_argument("seed", type=int, help="generation seed")
     gw.add_argument("--family", choices=["ca", "modpoly", "tag"], default="ca",
                     help="world family: 1D cellular automaton, polynomial map on Z_m, tag system")
+    gw.add_argument("--difficulty", type=int, default=0, help="difficulty tier (0-2+)")
     gw.set_defaults(fn=cmd_genworld)
+    cb = sub.add_parser("calib", help="cross-world calibration: confidence vs surprise")
+    cb.set_defaults(fn=cmd_calib)
+    cv = sub.add_parser("coevolve", help="POET loop: world population at the competence frontier")
+    cv.add_argument("--pop", type=int, default=3, help="active world population size")
+    cv.add_argument("-n", type=int, default=3, help="threads per world per pass")
+    cv.add_argument("--judge-after", type=int, default=6,
+                    help="threads before a world can graduate or park")
+    cv.set_defaults(fn=cmd_coevolve)
     st = sub.add_parser("stats", help="discovery-efficiency metrics for the world")
     st.set_defaults(fn=cmd_stats)
     dp = sub.add_parser("deps", help="claim -> tool dependency graph for the world")
