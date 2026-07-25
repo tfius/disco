@@ -1,0 +1,1 @@
+For Rule 150 (new_i = old_{i-1} XOR old_i XOR old_{i+1}) on a periodic binary tape of width N≥3, the kernel (nullspace) of the GF(2) linear update matrix has dimension exactly 2 when N is divisible by 3, and dimension exactly 0 otherwise — independent of any power-of-2 factor in N. (N=2 is degenerate/excluded: dimension 1 there.) Verified exhaustively for N=3..100.
