@@ -13,3 +13,4 @@
 {"ts": "2026-07-25T12:33:28", "kind": "step", "thread": "20260725-123118", "step": 5, "focus": "Particle behavior: does a single-site defect on a fixed-point background stay localized (glider), stay bounded (bounded defect), or spread unboundedly (chaotic)?", "confidence": 65, "surprise": 0, "judge_note": "Exact match: flip@200 (1\u21920) grows unbounded, flip@201 (0\u21921) stays frozen count=1/span=1 throughout, confirming asymmetric flip-direction hypothesis.", "exit": 0, "timeout": false}
 {"ts": "2026-07-25T12:33:49", "kind": "claim", "thread": "20260725-123118", "slug": "for-this-rule-rule-0-1-0-0-0-0-0-1-0-0-0-0-0-0-0-1-0-1-1-0-0", "admitted": false}
 {"ts": "2026-07-25T12:33:55", "kind": "verify", "total": 2, "passed": 2, "failed": [], "culled": []}
+{"ts": "2026-07-25T13:07:52", "kind": "verify", "agent": "solo", "total": 2, "passed": 2, "failed": [], "culled": []}

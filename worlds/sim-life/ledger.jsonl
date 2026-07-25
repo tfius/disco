@@ -153,3 +153,4 @@
 {"ts": "2026-07-24T14:22:57", "kind": "claim", "thread": "20260724-141909", "slug": "on-square-n-n-toroidal-life-grids-for-n-32-48-64-a-standard", "admitted": true}
 {"ts": "2026-07-24T14:22:57", "kind": "evolution", "event": "discarded", "generation": 2, "champion_score": 1.25, "challenger_score": 1.0}
 {"ts": "2026-07-24T14:23:41", "kind": "verify", "total": 24, "passed": 24, "failed": [], "culled": []}
+{"ts": "2026-07-25T13:07:51", "kind": "verify", "agent": "solo", "total": 24, "passed": 24, "failed": [], "culled": []}

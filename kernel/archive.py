@@ -103,17 +103,29 @@ def verify_all(on_event=print, only=None) -> dict:
     subset for cull cascades). A claim whose check fails reality CULL_AFTER times
     in a row is demoted to an open question — the archive is a population and
     verify is its environment."""
+    from concurrent.futures import ThreadPoolExecutor
+
     from . import ledger
     claims = sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []
     if only is not None:
         claims = [d for d in claims if d.name in set(only)]
-    failed, culled = [], []
-    for d in claims:
+
+    def _run_check(d):
         check = d / "check.py"
-        ok = False
-        if check.exists():
-            result = world.run_python(check.read_text(), config.RUNS / "verify" / d.name)
-            ok = not result["timeout"] and result["exit"] == 0
+        if not check.exists():
+            return d, False
+        result = world.run_python(check.read_text(), config.RUNS / "verify" / d.name)
+        return d, (not result["timeout"] and result["exit"] == 0)
+
+    # checks are independent subprocesses in separate workdirs — run them in
+    # parallel (verify latency is the archive's main scaling cost), then apply
+    # rot/cull bookkeeping sequentially for deterministic ledger order
+    with ThreadPoolExecutor(max_workers=min(4, max(1, len(claims)))) as pool:
+        results = list(pool.map(_run_check, claims))
+
+    failed, culled = [], []
+    for d, ok in results:
+        check = d / "check.py"
         meta_file = d / "meta.json"
         try:
             meta = json.loads(meta_file.read_text())

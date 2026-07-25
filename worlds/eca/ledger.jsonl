@@ -27,3 +27,4 @@
 {"ts": "2026-07-25T10:44:48", "kind": "claim", "thread": "20260725-104332", "slug": "for-rule-150-new-i-old-i-1-xor-old-i-xor-old-i-1-on-a-period", "admitted": true}
 {"ts": "2026-07-25T10:44:48", "kind": "evolution", "event": "promoted", "generation": 1, "champion_score": 2.0, "challenger_score": 3.0}
 {"ts": "2026-07-25T10:44:55", "kind": "verify", "total": 7, "passed": 7, "failed": [], "culled": []}
+{"ts": "2026-07-25T13:07:52", "kind": "verify", "agent": "solo", "total": 7, "passed": 7, "failed": [], "culled": []}
