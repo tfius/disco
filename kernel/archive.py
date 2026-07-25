@@ -84,11 +84,16 @@ def tool_imports(code: str) -> list:
 
 
 def dependents(tool_stem: str) -> list:
-    """Claims whose checks import this tool — the blast radius of a tool change."""
+    """Claims whose checks depend on this tool, directly or through one level of
+    tool-imports-tool — the blast radius of a tool change."""
+    affected = {tool_stem}
+    for t in (config.TOOLS.glob("*.py") if config.TOOLS.exists() else []):
+        if t.stem != tool_stem and tool_stem in tool_imports(t.read_text()):
+            affected.add(t.stem)
     out = []
     for d in (sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []):
         check = d / "check.py"
-        if check.exists() and tool_stem in tool_imports(check.read_text()):
+        if check.exists() and affected & set(tool_imports(check.read_text())):
             out.append(d.name)
     return out
 

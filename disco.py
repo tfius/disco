@@ -204,6 +204,9 @@ def cmd_calib(args):
     """Cross-world calibration: stated confidence vs judged surprise. High
     confidence should mean low surprise; r is the anti-correlation to watch."""
     pairs = []
+    if not config.WORLDS.exists():
+        print("(no worlds yet)")
+        return
     for wd in sorted(config.WORLDS.iterdir()):
         lf = wd / "ledger.jsonl"
         if not lf.is_file():

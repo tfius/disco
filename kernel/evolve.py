@@ -134,20 +134,30 @@ def _resolve(s, on_event):
 
 
 def attribute_cull(thread: str, slug: str, on_event=print):
-    """Delayed fitness: a culled claim is charged to the lineage that made it.
-    If the thread belongs to the current unresolved trial, the penalty lands in
-    the live scores; otherwise it is ledgered as lineage evidence for proposals."""
-    s = _state()
-    a = s.get("attribution", {}).get(thread)
-    if not a:
+    """Delayed fitness: a culled claim is charged to whichever agent lineage made
+    the thread — searched across ALL lineage files, since verify may run under a
+    different agent identity than the one that earned the claim. Live-trial
+    penalty when the trial is still open; permanent ledger attribution always."""
+    for f in sorted(config.WORLD_DIR.glob("evolution*.json")):
+        try:
+            s = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        a = s.get("attribution", {}).get(thread)
+        if not a:
+            continue
+        agent = "solo" if f.name == "evolution.json" else f.stem[len("evolution-"):]
+        sfx = "" if agent == "solo" else f"-{agent}"
+        live = _path(f"methodology{sfx}.challenger.md").exists()
+        if a["gen"] == s["generation"] and live:
+            s[a["variant"]].append({"thread": thread, "ending": "culled",
+                                    "score": SCORES["culled"]})
+            f.write_text(json.dumps(s, indent=2))
+            on_event(f"  evolution: cull of {slug} charged to {agent}'s live "
+                     f"{a['variant']} trial")
+        ledger.log("evolution", event="cull-attributed", generation=a["gen"],
+                   variant=a["variant"], slug=slug, lineage=agent)
         return
-    if a["gen"] == s["generation"] and challenger_text() is not None:
-        s[a["variant"]].append({"thread": thread, "ending": "culled",
-                                "score": SCORES["culled"]})
-        _save(s)
-        on_event(f"  evolution: cull of {slug} charged to live {a['variant']} trial")
-    ledger.log("evolution", event="cull-attributed", generation=a["gen"],
-               variant=a["variant"], slug=slug)
 
 
 def _evidence() -> str:

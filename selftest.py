@@ -288,7 +288,7 @@ def scenario_cascade():
     assert archive.dependents("probe9") == [res["slug"]], "dependency edge must be visible"
     archive.save_tool("probe9", "def nine():\n    return 8\n")  # break the tool
     v = archive.verify_all(on_event=lambda m: None, only=[res["slug"]])
-    assert v["failed"] == [res["slug"]] and v.get("subset") is None or True
+    assert v["failed"] == [res["slug"]] and v["subset"] is True, f"first fail must rot: {v}"
     v2 = archive.verify_all(on_event=lambda m: None, only=[res["slug"]])
     assert v2["culled"] == [res["slug"]], f"broken dependency must cull the claim: {v2}"
     print("cascade scenario OK — tool break rots then culls its dependent claim")

@@ -88,6 +88,19 @@ the per-episode surprise trajectories in `disco export` are the process signal.
 3. **Mid**: multi-agent steps 1–4; cull *cascades* (re-verify dependents when a
    shared tool changes); calibration dataset aggregation across worlds.
 
+## Known limitations (honest ledger)
+
+- Trial contamination: champion outcomes recorded while no challenger exists
+  count toward the next trial once one is proposed — mild asymmetry, visible in
+  evolution.json, not yet corrected.
+- Cascade depth: tool→tool dependency tracking goes one transitive hop; deeper
+  chains fall back to the session-level full verify.
+- Coevolve judges worlds on cumulative stats, not a recent window — a world
+  that starts hard and gets cracked can look mediocre forever; windowed judging
+  is the upgrade.
+- Multi-agent crowding uses token-Jaccard on focus lines — a crude similarity;
+  fine for the emergence experiment's yes/no, too blunt for anything finer.
+
 ## External recipe check (Nanbeige 4.2-3B)
 
 A published compact-agent recipe maps 1:1 onto disco's outputs: environment
