@@ -1,0 +1,22 @@
+{
+  "generation": 1,
+  "champion": [
+    {
+      "thread": "20260725-123032",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ],
+  "challenger": [
+    {
+      "thread": "20260725-122947",
+      "ending": "claim",
+      "score": 3.0
+    },
+    {
+      "thread": "20260725-123118",
+      "ending": "claim",
+      "score": -2.0
+    }
+  ]
+}

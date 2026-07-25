@@ -1,0 +1,1 @@
+For this rule (radius-2, 2-state), on any cyclic tape of width W≥2, the fixed points (states unchanged by step) are exactly: the two uniform states (all-0, all-1) always, plus, when W is even, the two alternating states (01)^(W/2) and (10)^(W/2) — giving exactly 4 fixed points for even W and exactly 2 for odd W (no other fixed points exist, verified by brute force for W=2..14).
