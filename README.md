@@ -239,6 +239,22 @@ worlds/<name>/runs/             per-thread workdirs: predictions, code, results,
 worlds/<name>/ledger.jsonl      append-only, kernel-written
 ```
 
+## Deeper docs
+
+- [docs/games.md](docs/games.md) — the game-theoretic skeleton: claim admission
+  as verifier/falsifier games, the kernel as mechanism design, methodology
+  evolution as replicator dynamics, and the unbuilt multi-agent layer.
+- [docs/roadmap.md](docs/roadmap.md) — the goal: disco as a discovery engine
+  with worlds as RL environments; pillar status and sequencing.
+- [docs/predictions.md](docs/predictions.md) — pre-registered predictions for
+  every world, with [full discovery programs](docs/predictions/) per world.
+
+Training-facing commands: `disco.py export` turns a world's threads into
+episode JSONL (trajectories, surprise scores, execution-anchored rewards);
+`disco.py genworld <seed>` rolls a procedurally generated CA world whose truths
+cannot exist in any pretraining corpus — the contamination-free territories for
+teaching and testing discovery itself.
+
 ## License
 
 [GPL-3.0](LICENSE) — free to use, study, and modify; derivatives must remain open

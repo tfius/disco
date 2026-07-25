@@ -10,6 +10,8 @@ predict → run → surprise → compress → archive. Design rationale in READM
 - `python3 disco.py status` / `audit` / `verify` / `worlds` / `seed` / `reset`
 - `python3 disco.py newworld <name> "<territory>"` then `-w <name>` on any command —
   worlds live in `worlds/<name>/` with their own archive/runs/ledger
+- `python3 disco.py export` — world threads → training episodes (exports/, gitignored)
+- `python3 disco.py genworld <seed>` — procedurally generated contamination-free CA world
 
 ## Backends
 

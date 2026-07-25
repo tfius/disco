@@ -1,0 +1,70 @@
+# Goal: disco as a discovery engine
+
+> Make disco a discovery engine with worlds as RL environments — agent vs.
+> kernel with methodology evolution, knowledge maintenance, and multi-agent
+> science.
+
+The formal skeleton for all of this is [games.md](games.md): each pillar below
+is one layer of the game stack made executable.
+
+## Pillar status
+
+**Agent vs. kernel (mechanism) — built.** Frozen fitness, replication gate,
+check-gated admission, pre-committed predictions, fresh-context judge. Open
+mechanism problems (from games.md §3): trivial-claim farming, circular bounded
+checks, check-collusion, prover-dependency rot. Each needs a mechanism patch,
+not a bigger penalty.
+
+**Methodology evolution — built.** Champion/challenger replicator per world.
+Empirical record: two discards (sim-life — strong resident baseline), one
+promotion (eca). Known weakness: 4+4 trials are noisy; fitness saturates when
+admission rate is high. Candidate upgrade: delayed verify-survival scoring
+(claims earn full fitness only after surviving their next verify; culls score
+retroactively against the variant that made them).
+
+**Knowledge maintenance — built.** Auto-verify before every session; rot
+counters; cull-to-open-question with re-earning. Gap: claim dependency graphs
+(a claim whose check imports a tool, or cites a prover, rots silently when the
+dependency breaks) — verify treats claims as independent when they are a
+coalition.
+
+**Worlds as RL environments — bootstrapped this commit.**
+- `disco.py export`: threads → episode JSONL (trajectory, surprise scores,
+  outcome, mechanism reward, transcript). Positive/negative labels are
+  execution-anchored (gate + verify), never judge-opinion.
+- `disco.py genworld <seed>`: procedurally generated CA worlds whose rule
+  tables are rolled at random — truths guaranteed absent from any pretraining
+  corpus. These are the contamination-free train/eval territories.
+- Next: batch rollout runner (many worlds × many threads unattended, cheap
+  local models acceptable — the gate filters quality); reward summaries per
+  episode aligned with `evolve.SCORES`; calibration extraction (stated
+  confidence vs judged outcome → proper scoring data).
+- Eval protocol: train on N generated worlds, evaluate on held-out generated
+  worlds. Transfer = learned discovering; no transfer = memorized discoveries.
+
+**Multi-agent science — designed, not built** (games.md §6). Minimal honest
+kernel change, in order:
+1. Agent identity on threads (`--agent NAME`), ledger attribution.
+2. Per-agent methodology lineages (methodology-NAME.md, independent
+   champion/challenger evolution per agent) over one shared archive.
+3. Crowding economics: duplicate-slug bounces already price collision; add
+   per-vein overlap measurement (focus-similarity across agents' threads).
+4. The experiment: two agents, one world, sessions interleaved. Success
+   metric: question-overlap falls below the random-assignment baseline —
+   division of cognitive labor emerging from payoffs, not coordination.
+5. Later: priority/attribution effects (does racing distort toward fast-cheap
+   claims?), leader/follower signaling (do agents free-ride on each other's
+   surprise gradients?).
+
+## Sequencing
+
+1. **Now**: export + genworld (done); first generated-world session to validate
+   that discovery works on territory with zero pretraining support.
+2. **Short**: batch rollout runner; delayed verify-survival fitness; dependency
+   tracking in verify (claims declare tool/prover imports; cull cascades).
+3. **Mid**: multi-agent steps 1–4; calibration dataset extraction.
+4. **Long**: world–agent coevolution (a generator process that rolls new worlds
+   at the frontier of the agent's competence — POET-shaped); cross-world
+   methodology transfer (does a busybeaver-evolved methodology help in a
+   generated world?); RL training loop proper, with held-out-world eval as the
+   only score that counts.

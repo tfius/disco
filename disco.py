@@ -5,7 +5,7 @@ import json
 import os
 import sys
 
-from kernel import archive, audit, config, evolve, ledger, loop
+from kernel import archive, audit, config, evolve, export, ledger, loop
 
 
 def cmd_run(args):
@@ -82,6 +82,40 @@ def cmd_evolve(args):
         print("\nno challenger on trial (one will be proposed at next run)")
 
 
+def cmd_export(args):
+    path, count = export.episodes(args.out)
+    print(f"exported {count} episodes -> {path}")
+
+
+def cmd_genworld(args):
+    """Procedurally generated CA world — rule rolled from a seed, so its truths
+    cannot exist in any pretraining corpus. The contamination-free territory."""
+    import random as _random
+    rng = _random.Random(args.seed)
+    k, r = rng.choice([(2, 2), (3, 1)])  # never (2,1): elementary CAs are documented
+    n = k ** (2 * r + 1)
+    table = [rng.randrange(k) for _ in range(n)]
+    table[0] = 0  # quiescent background so structure has somewhere to live
+    name = f"gen-{args.seed}"
+    config.set_world(name)
+    if (config.WORLD_DIR / "world.md").exists():
+        sys.exit(f"world '{name}' already exists — run it: python3 disco.py -w {name} run")
+    config.ensure_dirs()
+    (config.WORLD_DIR / "world.md").write_text(
+        f"Your world is a one-dimensional cellular automaton with {k} states and "
+        f"radius {r}, on finite cyclic tapes and bounded windows. Each cell's next "
+        f"state is given by this rule table, indexed by the neighborhood read as a "
+        f"base-{k} number (leftmost cell most significant):\n\n{table}\n\n"
+        f"This rule was generated at random from seed {args.seed}; nothing about it "
+        f"exists in any literature — every law is undiscovered. Implement the rule "
+        f"once as a tool, validate it against the table, then discover: backgrounds "
+        f"and invariants, cycle structure on small widths, particles and their "
+        f"collisions, statistical behavior of random tapes. Claims must be exact, "
+        f"seeded, and checked by running the automaton.\n")
+    print(f"world '{name}' created — {k} states, radius {r}, {n}-entry random table")
+    print(f"run: python3 disco.py -w {name} run -n 3")
+
+
 def cmd_seed(args):
     config.ensure_dirs()
     slug = archive.save_question(args.title, args.body or "(seeded by human — territory, not instructions)", "human-seed")
@@ -145,6 +179,12 @@ def main():
     nw.set_defaults(fn=cmd_newworld)
     ev = sub.add_parser("evolve", help="show methodology evolution state for the world")
     ev.set_defaults(fn=cmd_evolve)
+    ex = sub.add_parser("export", help="export the world's threads as training episodes (JSONL)")
+    ex.add_argument("-o", "--out", default=None, help="output path (default exports/<world>.jsonl)")
+    ex.set_defaults(fn=cmd_export)
+    gw = sub.add_parser("genworld", help="generate a contamination-free random-CA world from a seed")
+    gw.add_argument("seed", type=int, help="generation seed -> worlds/gen-<seed>/")
+    gw.set_defaults(fn=cmd_genworld)
     args = p.parse_args()
     if args.world:
         config.set_world(args.world)
