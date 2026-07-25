@@ -294,8 +294,23 @@ def scenario_cascade():
     print("cascade scenario OK — tool break rots then culls its dependent claim")
 
 
+def scenario_slug_collision():
+    _patch_config()
+    config.ensure_dirs()
+    prefix = "For rule table RULE = [0, 0, 0, 0, 1, 1, 2, 0, 2, 1, 0, 2] the system "
+    ok = "import sys; sys.exit(0)"
+    r1 = archive.admit_claim(prefix + "has a quiescent background.", ok, "t1", [3, 1])
+    r2 = archive.admit_claim(prefix + "has exactly two fixed points.", ok, "t2", [4, 1])
+    assert r1["admitted"] and r2["admitted"], (r1, r2)
+    assert r1["slug"] != r2["slug"], "different claims must get distinct slugs"
+    r3 = archive.admit_claim(prefix + "has a quiescent background.", ok, "t3", [2, 1])
+    assert not r3["admitted"] and r3["reason"] == "duplicate claim", r3
+    print("slug-collision scenario OK — distinct claims disambiguated, true duplicates priced")
+
+
 if __name__ == "__main__":
     main()
     scenario_gate()
     scenario_evolution()
     scenario_cascade()
+    scenario_slug_collision()

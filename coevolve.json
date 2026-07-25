@@ -1,0 +1,10 @@
+{
+  "active": [
+    "gen-modpoly-1000",
+    "gen-tag-1001",
+    "gen-1002"
+  ],
+  "retired": [],
+  "next_seed": 1003,
+  "difficulty": 0
+}

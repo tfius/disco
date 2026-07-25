@@ -1,0 +1,1 @@
+For the tag system on {a,b} (production a->bb, b->a; read first symbol, delete first two symbols, append production), every binary word of length 1 through 16 halts (reaches a word of length <2) within 200 steps — confirmed exhaustively over all 2^17−2 = 131070 such words, with zero cycles and zero budget-exhaustions observed, and maximum steps-to-halt = 31 (achieved by 'a'*16).

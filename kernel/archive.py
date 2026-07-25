@@ -26,7 +26,19 @@ def admit_claim(statement: str, check_code: str, thread_id: str, history: list) 
 
     dest = config.CLAIMS / slug
     if dest.exists():
-        return {"admitted": False, "slug": slug, "result": result, "reason": "duplicate slug"}
+        existing = (dest / "claim.md").read_text().strip() if (dest / "claim.md").exists() else ""
+        if existing == statement.strip():
+            # true duplicate: same statement re-derived — the congestion price
+            return {"admitted": False, "slug": slug, "result": result,
+                    "reason": "duplicate claim"}
+        # slug collision between DIFFERENT claims (long shared prefixes, e.g.
+        # generated-world rule tables) — disambiguate instead of losing knowledge
+        import hashlib
+        slug = f"{slug[:52]}-{hashlib.sha256(statement.encode()).hexdigest()[:6]}"
+        dest = config.CLAIMS / slug
+        if dest.exists():
+            return {"admitted": False, "slug": slug, "result": result,
+                    "reason": "duplicate claim"}
     dest.mkdir(parents=True)
     (dest / "claim.md").write_text(statement.strip() + "\n")
     (dest / "check.py").write_text(check_code)
