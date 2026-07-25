@@ -11,6 +11,14 @@ likely instrument-and-law ladder), **Predicted claims** (concrete and falsifiabl
 with confidence), **How** (the experimental strategy that gets there), **Traps**
 (world-specific ways to fail).
 
+**Full discovery programs** — each world's arc expanded to its endgame (phase maps
+with instruments and confidence-tagged claims, stopping criteria, the open-research
+boundary, harness strain, and the methodology each world should select for):
+[python](predictions/python.md) · [sim-life](predictions/sim-life.md) ·
+[eca](predictions/eca.md) · [sandpile](predictions/sandpile.md) ·
+[busybeaver](predictions/busybeaver.md) · [logistic](predictions/logistic.md) ·
+[random-graphs](predictions/random-graphs.md) · [ipd](predictions/ipd.md)
+
 ---
 
 ## python — the interpreter as territory
