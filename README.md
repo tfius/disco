@@ -160,6 +160,7 @@ python3 disco.py grind 100 101 102 -n 3        # batch: generate + run + export
 python3 disco.py run -n 8 --agents alice,bob   # multi-agent: shared archive, own methodologies
 python3 disco.py calib        # cross-world calibration: confidence vs surprise
 python3 disco.py coevolve     # POET loop: world population at the competence frontier
+python3 disco.py rollout -g 8 # GRPO group sampling from one frozen context
 ```
 
 `seed` is the human steering channel: it parks a question in the world's `archive/open-questions/`,

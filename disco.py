@@ -305,6 +305,94 @@ def cmd_deps(args):
         print(f"tool {tool}: {tag}")
 
 
+def cmd_rollout(args):
+    """GRPO group sampling: G independent threads from one frozen, identical
+    context (same archive snapshot, same methodology, same optional question),
+    each on an isolated copy of the world — archive mutations discarded, episodes
+    kept with a shared group id. Optionally commit the best rollout's claim."""
+    import hashlib
+    import shutil
+    import time
+    src, world_name = config.WORLD_DIR, config.WORLD
+    meth = ""
+    mf = src / "methodology.md"
+    if mf.exists():
+        meth = mf.read_text().strip()
+    context = config.world_description() + "\n" + meth + "\n" + archive.index() \
+        + "\n" + (args.question or "")
+    gid = hashlib.sha256(context.encode()).hexdigest()[:12]
+    base = config.ROOT / "rollouts" / f"{world_name}-{time.strftime('%Y%m%d-%H%M%S')}"
+    out_dir = config.ROOT / "exports"
+    out_dir.mkdir(exist_ok=True)
+    out_file = out_dir / f"rollouts-{world_name}.jsonl"
+    print(f"group {gid}: {args.group} rollouts from frozen context")
+
+    episodes, dirs = [], []
+    try:
+        for i in range(args.group):
+            rdir = base / f"r{i}"
+            shutil.copytree(src, rdir, ignore=shutil.ignore_patterns(
+                "runs", "rollouts", "__pycache__"))
+            (rdir / "ledger.jsonl").unlink(missing_ok=True)
+            if args.question:
+                qdir = rdir / "archive" / "open-questions"
+                qdir.mkdir(parents=True, exist_ok=True)
+                for q in qdir.glob("*.md"):
+                    q.unlink()
+                (qdir / "rollout-question.md").write_text(f"# {args.question}\n")
+            config.point_at(rdir, world_name)
+            print(f"rollout {i + 1}/{args.group}")
+            try:
+                loop.run_thread(methodology=meth)
+            except RuntimeError as e:
+                print(f"  aborted (endpoint?): {e}", file=sys.stderr)
+                break
+            _, count = export.episodes(out_path=rdir / "episodes.jsonl")
+            if count:
+                ep = json.loads((rdir / "episodes.jsonl").read_text().splitlines()[-1])
+                ep["group"], ep["rollout"] = gid, i
+                with open(out_file, "a") as f:
+                    f.write(json.dumps(ep) + "\n")
+                episodes.append(ep)
+                dirs.append(rdir)
+                print(f"  ended: {ep['ending']} — reward {ep['reward']}")
+    finally:
+        config.set_world(world_name)
+
+    if not episodes:
+        print("no episodes produced")
+        return
+    rewards = [e["reward"] for e in episodes]
+    mean = sum(rewards) / len(rewards)
+    var = sum((r - mean) ** 2 for r in rewards) / len(rewards)
+    std = var ** 0.5
+    advs = [round((r - mean) / std, 2) if std else 0.0 for r in rewards]
+    print(f"group rewards: {rewards} — mean {mean:.2f}, std {std:.2f}")
+    print(f"advantages:    {advs}" + ("  (std=0: degenerate group — world too easy/hard "
+                                      "for GRPO signal; use the coevolve frontier)" if not std else ""))
+    print(f"episodes appended -> {out_file}")
+
+    if args.commit_best and std:
+        best = max(range(len(episodes)), key=lambda i: episodes[i]["reward"])
+        ep, rdir = episodes[best], dirs[best]
+        if ep["admitted"] and ep.get("slug"):
+            src_claims = {d.name for d in (src / "archive" / "claims").iterdir()} \
+                if (src / "archive" / "claims").exists() else set()
+            new = [d for d in (rdir / "archive" / "claims").iterdir()
+                   if d.name not in src_claims]
+            for d in new:
+                shutil.copytree(d, src / "archive" / "claims" / d.name)
+            src_tools = {t.name for t in (src / "archive" / "tools").glob("*.py")} \
+                if (src / "archive" / "tools").exists() else set()
+            for t in (rdir / "archive" / "tools").glob("*.py"):
+                if t.name not in src_tools:
+                    shutil.copy(t, src / "archive" / "tools" / t.name)
+            print(f"best-of-{args.group} committed: rollout {best} "
+                  f"({[d.name for d in new]}) — next verify will police it")
+        else:
+            print("best rollout admitted nothing — nothing committed")
+
+
 def cmd_seed(args):
     config.ensure_dirs()
     slug = archive.save_question(args.title, args.body or "(seeded by human — territory, not instructions)", "human-seed")
@@ -387,6 +475,12 @@ def main():
     cv.add_argument("--judge-after", type=int, default=6,
                     help="threads before a world can graduate or park")
     cv.set_defaults(fn=cmd_coevolve)
+    ro = sub.add_parser("rollout", help="GRPO group sampling: G threads from one frozen context")
+    ro.add_argument("--group", "-g", type=int, default=4, help="rollouts per group")
+    ro.add_argument("--question", default=None, help="pin a single question for the whole group")
+    ro.add_argument("--commit-best", action="store_true",
+                    help="commit the best rollout's new claims/tools to the real archive")
+    ro.set_defaults(fn=cmd_rollout)
     st = sub.add_parser("stats", help="discovery-efficiency metrics for the world")
     st.set_defaults(fn=cmd_stats)
     dp = sub.add_parser("deps", help="claim -> tool dependency graph for the world")

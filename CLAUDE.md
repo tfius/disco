@@ -15,6 +15,7 @@ predict → run → surprise → compress → archive. Design rationale in READM
 - `python3 disco.py stats` / `deps` — discovery metrics, claim→tool dependency graph
 - `python3 disco.py grind <seeds...> -n T` — batch: generate worlds + run + export
 - `python3 disco.py run --agents a,b` / `calib` / `coevolve` — multi-agent science, calibration, POET loop
+- `python3 disco.py rollout -g G` — GRPO group sampling (isolated copies, shared group id)
 
 ## Backends
 

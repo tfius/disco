@@ -25,17 +25,26 @@ MAX_TOKENS = int(os.environ.get("DISCO_MAX_TOKENS", "3000"))
 DEFAULT_WORLD_TEXT = "Your world is the Python software environment of this machine."
 
 
-def set_world(name: str):
-    """Point all state paths at worlds/<name>/. Kernel modules read these at call time."""
+def _point(world_dir: Path, name: str):
     global WORLD, WORLD_DIR, ARCHIVE, CLAIMS, TOOLS, QUESTIONS, RUNS, LEDGER
     WORLD = name
-    WORLD_DIR = WORLDS / name
+    WORLD_DIR = world_dir
     ARCHIVE = WORLD_DIR / "archive"
     CLAIMS = ARCHIVE / "claims"
     TOOLS = ARCHIVE / "tools"
     QUESTIONS = ARCHIVE / "open-questions"
     RUNS = WORLD_DIR / "runs"
     LEDGER = WORLD_DIR / "ledger.jsonl"
+
+
+def set_world(name: str):
+    """Point all state paths at worlds/<name>/. Kernel modules read these at call time."""
+    _point(WORLDS / name, name)
+
+
+def point_at(world_dir, name: str):
+    """Point state paths at an arbitrary directory — rollout isolation copies."""
+    _point(Path(world_dir), name)
 
 
 set_world(os.environ.get("DISCO_WORLD", "python"))

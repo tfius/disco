@@ -101,6 +101,21 @@ the per-episode surprise trajectories in `disco export` are the process signal.
 - Multi-agent crowding uses token-Jaccard on focus lines — a crude similarity;
   fine for the emergence experiment's yes/no, too blunt for anything finer.
 
+## GRPO readiness
+
+`disco rollout --group G [--question "..."] [--commit-best]` samples G threads
+from one frozen, identical context (same archive snapshot, methodology, and
+optional pinned question), each on an isolated copy of the world — archive
+mutations discarded, episodes appended to `exports/rollouts-<world>.jsonl`
+with a shared `group` id. Group-relative advantages are printed and trivially
+recomputable by a trainer; execution-anchored rewards make them hard to hack.
+Two facts matter for training runs: (1) group-relative normalization cancels
+per-world difficulty, so multi-world batches need no reward engineering;
+(2) saturated worlds produce std=0 groups (all +3) with zero GRPO signal —
+groups must be sampled at the coevolve frontier, which is what the frontier
+is for. `--commit-best` turns group sampling into a best-of-G archive-growth
+policy: better training data and a better archive from the same compute.
+
 ## External recipe check (Nanbeige 4.2-3B)
 
 A published compact-agent recipe maps 1:1 onto disco's outputs: environment
