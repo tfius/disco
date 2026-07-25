@@ -372,7 +372,7 @@ def cmd_rollout(args):
                                       "for GRPO signal; use the coevolve frontier)" if not std else ""))
     print(f"episodes appended -> {out_file}")
 
-    if args.commit_best and std:
+    if args.commit_best:
         best = max(range(len(episodes)), key=lambda i: episodes[i]["reward"])
         ep, rdir = episodes[best], dirs[best]
         if ep["admitted"] and ep.get("slug"):
@@ -405,7 +405,9 @@ def cmd_reset(args):
     attic = config.ROOT / "attic" / f"{config.WORLD}-{time.strftime('%Y%m%d-%H%M%S')}"
     attic.mkdir(parents=True)
     moved = []
-    for path in (config.ARCHIVE, config.RUNS, config.LEDGER):
+    lineage = [p for pat in ("methodology*", "evolution*.json")
+               for p in config.WORLD_DIR.glob(pat)]
+    for path in [config.ARCHIVE, config.RUNS, config.LEDGER] + lineage:
         if path.exists():
             shutil.move(str(path), str(attic / path.name))
             moved.append(path.name)
@@ -493,7 +495,8 @@ def main():
     args = p.parse_args()
     if args.world:
         config.set_world(args.world)
-    if args.fn not in (cmd_newworld, cmd_worlds) and config.WORLD != "python" \
+    worldless = (cmd_newworld, cmd_worlds, cmd_genworld, cmd_grind, cmd_coevolve, cmd_calib)
+    if args.fn not in worldless and config.WORLD != "python" \
             and not (config.WORLD_DIR / "world.md").exists():
         sys.exit(f"world '{config.WORLD}' has no world.md — create it first:\n"
                  f"  python3 disco.py newworld {config.WORLD} \"Your world is ...\"")
