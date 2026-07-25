@@ -42,19 +42,13 @@ coalition.
 - Eval protocol: train on N generated worlds, evaluate on held-out generated
   worlds. Transfer = learned discovering; no transfer = memorized discoveries.
 
-**Multi-agent science — designed, not built** (games.md §6). Minimal honest
-kernel change, in order:
-1. Agent identity on threads (`--agent NAME`), ledger attribution.
-2. Per-agent methodology lineages (methodology-NAME.md, independent
-   champion/challenger evolution per agent) over one shared archive.
-3. Crowding economics: duplicate-slug bounces already price collision; add
-   per-vein overlap measurement (focus-similarity across agents' threads).
-4. The experiment: two agents, one world, sessions interleaved. Success
-   metric: question-overlap falls below the random-assignment baseline —
-   division of cognitive labor emerging from payoffs, not coordination.
-5. Later: priority/attribution effects (does racing distort toward fast-cheap
-   claims?), leader/follower signaling (do agents free-ride on each other's
-   surprise gradients?).
+**Multi-agent science — built** (games.md §6), in the order planned:
+agent identity with ledger attribution on every entry; per-agent methodology
+lineages (`methodology-NAME.md`, independent champion/challenger evolution)
+over one shared archive; crowding-overlap metric in `stats`; the interleaved
+runner (`run --agents alice,bob`). The division-of-labor experiment (overlap
+vs random-assignment baseline) awaits a live two-agent session. Later:
+priority/attribution effects, leader/follower signaling.
 
 ## First empirical result: the surprise signature
 
@@ -85,8 +79,9 @@ the per-episode surprise trajectories in `disco export` are the process signal.
    dependency tracking (`disco deps` claim→tool graph; verify names suspect
    imports on failures); turn-level process rewards + trajectory filter labels
    in export.
-3. **Mid**: multi-agent steps 1–4; cull *cascades* (re-verify dependents when a
-   shared tool changes); calibration dataset aggregation across worlds.
+3. **Mid — done**: multi-agent science (above); cull cascades on tool overwrite
+   with one transitive tool→tool hop; `disco calib` cross-world calibration
+   (r(confidence, surprise) = −0.54 over the current corpus).
 
 ## Known limitations (honest ledger)
 
@@ -129,8 +124,8 @@ rewards = frozen fitness; process rewards = per-step surprise closure
 outcome reward −2 but contains a +10 process-reward step (the surprise-10→0
 close) — exactly the trajectory that outcome-only filtering loses and combined
 rewards keep.
-4. **Long**: world–agent coevolution (a generator process that rolls new worlds
-   at the frontier of the agent's competence — POET-shaped); cross-world
+4. **Long — partly built**: `disco coevolve` (POET loop) and `disco rollout`
+   (GRPO groups) shipped; still open: cross-world
    methodology transfer (does a busybeaver-evolved methodology help in a
    generated world?); RL training loop proper, with held-out-world eval as the
    only score that counts.
