@@ -14,6 +14,8 @@ from . import config, ledger, llm, prompts
 SCORES = {
     "claim_admitted": 3.0,
     "claim_rejected": -2.0,
+    "culled": -3.0,  # delayed penalty: reality retracted an admitted claim
+
     "question": 1.0,        # honest parked surprise
     "question_parked": -0.5,  # premature claim the kernel had to park
     "noise": 0.0,
@@ -76,6 +78,10 @@ def note(outcome: dict, variant: str, on_event=print):
     s = _state()
     s[variant].append({"thread": outcome.get("thread"), "ending": outcome.get("ending"),
                        "score": score(outcome)})
+    # permanent attribution: which lineage made this thread — survives resolution,
+    # so later culls can be charged to the variant that earned the false claim
+    s.setdefault("attribution", {})[outcome.get("thread")] = {
+        "gen": s["generation"], "variant": variant}
     _save(s)
     if challenger_text() is not None and \
             min(len(s["champion"]), len(s["challenger"])) >= config.TRIAL_THREADS:
@@ -102,7 +108,25 @@ def _resolve(s, on_event):
                challenger_score=round(chal, 2))
     on_event(f"  evolution gen {s['generation']}: challenger "
              f"{'PROMOTED' if promoted else 'discarded'} ({chal:.2f} vs {champ:.2f})")
-    _save({"generation": s["generation"] + 1, "champion": [], "challenger": []})
+    _save({"generation": s["generation"] + 1, "champion": [], "challenger": [],
+           "attribution": s.get("attribution", {})})
+
+
+def attribute_cull(thread: str, slug: str, on_event=print):
+    """Delayed fitness: a culled claim is charged to the lineage that made it.
+    If the thread belongs to the current unresolved trial, the penalty lands in
+    the live scores; otherwise it is ledgered as lineage evidence for proposals."""
+    s = _state()
+    a = s.get("attribution", {}).get(thread)
+    if not a:
+        return
+    if a["gen"] == s["generation"] and challenger_text() is not None:
+        s[a["variant"]].append({"thread": thread, "ending": "culled",
+                                "score": SCORES["culled"]})
+        _save(s)
+        on_event(f"  evolution: cull of {slug} charged to live {a['variant']} trial")
+    ledger.log("evolution", event="cull-attributed", generation=a["gen"],
+               variant=a["variant"], slug=slug)
 
 
 def _evidence() -> str:

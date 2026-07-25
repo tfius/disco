@@ -67,6 +67,12 @@ def episodes(out_path=None):
                        "admitted": bool(led_out.get("admitted")),
                        "parked": "unreplicated" in str(led_out.get("slug", ""))}
             surprises = [s["surprise"] for s in steps if "surprise" in s]
+            # turn-level process reward: how much surprise this step closed
+            prev = None
+            for s in steps:
+                if "surprise" in s:
+                    s["process_reward"] = (prev - s["surprise"]) if prev is not None else None
+                    prev = s["surprise"]
             episode = {
                 "world": config.WORLD,
                 "thread": thread,
@@ -79,6 +85,13 @@ def episodes(out_path=None):
                 "closure": (surprises[0] - surprises[-1]) if len(surprises) >= 2 else None,
                 "calibration": [[s.get("confidence"), s["surprise"]]
                                 for s in steps if "surprise" in s],
+                # trajectory-level filter labels: test-case-anchored, longitudinal
+                "filters": {
+                    "gate_passed": outcome["admitted"],
+                    "verified_alive": bool(led_out.get("slug"))
+                        and (config.CLAIMS / str(led_out.get("slug"))).exists(),
+                    "closed_surprise": len(surprises) >= 2 and surprises[0] > surprises[-1],
+                },
             }
             slug = led_out.get("slug")
             if ending == "claim" and outcome["admitted"] and slug:

@@ -8,13 +8,14 @@ import sys
 from kernel import archive, audit, config, evolve, export, ledger, loop
 
 
-def cmd_run(args):
+def _run_session(n) -> bool:
+    """Run n threads in the current world. Returns False on backend abort."""
     if config.CLAIMS.exists() and any(config.CLAIMS.iterdir()):
         print("pre-run verify (selection):")
         archive.verify_all()
     evolving = os.environ.get("DISCO_EVOLVE", "1") != "0"
-    for i in range(args.n):
-        print(f"thread {i + 1}/{args.n}")
+    for i in range(n):
+        print(f"thread {i + 1}/{n}")
         try:
             variant, methodology = evolve.current() if evolving else ("champion", None)
             if evolving:
@@ -22,10 +23,31 @@ def cmd_run(args):
             outcome = loop.run_thread(methodology=methodology)
         except RuntimeError as e:
             print(f"  aborted (endpoint?): {e}", file=sys.stderr)
-            break
+            return False
         print(f"  ended: {outcome['ending']} after {outcome['steps']} step(s)")
         if evolving:
             evolve.note(outcome, variant)
+    return True
+
+
+def cmd_run(args):
+    _run_session(args.n)
+
+
+def cmd_grind(args):
+    """Batch rollout runner: generated worlds x threads, unattended. The gate
+    filters quality, so weak/cheap models still yield usable training episodes."""
+    from kernel import stats
+    for seed in args.seeds:
+        name = _genworld_create(args.family, seed, must_create=False)
+        config.set_world(name)
+        print(f"===== grind: {name}")
+        if not _run_session(args.n):
+            print("backend down — stopping grind", file=sys.stderr)
+            break
+        print(stats.render(stats.compute()))
+        path, count = export.episodes()
+        print(f"exported {count} episodes -> {path}")
 
 
 def cmd_verify(args):
@@ -142,20 +164,45 @@ def _gen_tag(rng, seed):
             f"only via decidable certificates. ")
 
 
+def _genworld_create(family, seed, must_create=True) -> str:
+    import random as _random
+    rng = _random.Random(f"{family}-{seed}")
+    summary, body = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag}[family](rng, seed)
+    name = f"gen-{seed}" if family == "ca" else f"gen-{family}-{seed}"
+    config.set_world(name)
+    if (config.WORLD_DIR / "world.md").exists():
+        if must_create:
+            sys.exit(f"world '{name}' already exists — run it: python3 disco.py -w {name} run")
+        return name
+    config.ensure_dirs()
+    (config.WORLD_DIR / "world.md").write_text(body + GEN_CLOSING.format(seed=seed))
+    print(f"world '{name}' created — {summary}")
+    return name
+
+
 def cmd_genworld(args):
     """Procedurally generated world — rules rolled from a seed, so their truths
     cannot exist in any pretraining corpus. The contamination-free territories."""
-    import random as _random
-    rng = _random.Random(f"{args.family}-{args.seed}")
-    summary, body = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag}[args.family](rng, args.seed)
-    name = f"gen-{args.seed}" if args.family == "ca" else f"gen-{args.family}-{args.seed}"
-    config.set_world(name)
-    if (config.WORLD_DIR / "world.md").exists():
-        sys.exit(f"world '{name}' already exists — run it: python3 disco.py -w {name} run")
-    config.ensure_dirs()
-    (config.WORLD_DIR / "world.md").write_text(body + GEN_CLOSING.format(seed=args.seed))
-    print(f"world '{name}' created — {summary}")
+    name = _genworld_create(args.family, args.seed)
     print(f"run: python3 disco.py -w {name} run -n 3")
+
+
+def cmd_deps(args):
+    """Claim -> tool dependency graph: which knowledge stands on which instruments."""
+    config.ensure_dirs()
+    tool_users = {t.stem: [] for t in config.TOOLS.glob("*.py")}
+    claims = sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []
+    for d in claims:
+        check = d / "check.py"
+        deps = archive.tool_imports(check.read_text()) if check.exists() else []
+        if deps:
+            print(f"{d.name[:56]} <- {', '.join(deps)}")
+        for dep in deps:
+            tool_users.setdefault(dep, []).append(d.name)
+    print()
+    for tool, users in sorted(tool_users.items(), key=lambda kv: -len(kv[1])):
+        tag = f"{len(users)} dependent claim(s)" if users else "no dependent claims (unused by checks)"
+        print(f"tool {tool}: {tag}")
 
 
 def cmd_seed(args):
@@ -231,6 +278,13 @@ def main():
     gw.set_defaults(fn=cmd_genworld)
     st = sub.add_parser("stats", help="discovery-efficiency metrics for the world")
     st.set_defaults(fn=cmd_stats)
+    dp = sub.add_parser("deps", help="claim -> tool dependency graph for the world")
+    dp.set_defaults(fn=cmd_deps)
+    gr = sub.add_parser("grind", help="batch rollout: generate worlds and run sessions unattended")
+    gr.add_argument("seeds", type=int, nargs="+", help="world seeds to grind")
+    gr.add_argument("--family", choices=["ca", "modpoly", "tag"], default="ca")
+    gr.add_argument("-n", type=int, default=3, help="threads per world")
+    gr.set_defaults(fn=cmd_grind)
     args = p.parse_args()
     if args.world:
         config.set_world(args.world)

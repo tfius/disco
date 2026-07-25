@@ -77,9 +77,30 @@ the per-episode surprise trajectories in `disco export` are the process signal.
 1. **Now**: export + genworld (done); first generated-world session (done —
    above); world families beyond CA (`genworld --family modpoly|tag`) and
    per-world discovery-efficiency stats (done).
-2. **Short**: batch rollout runner; delayed verify-survival fitness; dependency
-   tracking in verify (claims declare tool/prover imports; cull cascades).
-3. **Mid**: multi-agent steps 1–4; calibration dataset extraction.
+2. **Short — done**: batch rollout runner (`disco grind <seeds> --family F -n T`:
+   generate + run + stats + export per world, unattended; the gate filters
+   quality so cheap local models still yield usable episodes); delayed fitness
+   v1 (culls are charged to the lineage that made the claim — live-trial
+   penalty −3 when applicable, permanent ledger attribution otherwise);
+   dependency tracking (`disco deps` claim→tool graph; verify names suspect
+   imports on failures); turn-level process rewards + trajectory filter labels
+   in export.
+3. **Mid**: multi-agent steps 1–4; cull *cascades* (re-verify dependents when a
+   shared tool changes); calibration dataset aggregation across worlds.
+
+## External recipe check (Nanbeige 4.2-3B)
+
+A published compact-agent recipe maps 1:1 onto disco's outputs: environment
+integrations = the documented worlds; large-scale environment synthesis =
+`genworld` families × seeds; task/asset/scaffold diversity = self-generated
+questions + per-world tools + evolving methodology; trajectory-level filtering
+with test-case validation = gate + verify survival (`filters` in export);
+turn-level filtering with rubric assessment = per-step judge surprise; outcome
+rewards = frozen fitness; process rewards = per-step surprise closure
+(`process_reward` in export). Empirical exhibit: gen-42's rejected thread has
+outcome reward −2 but contains a +10 process-reward step (the surprise-10→0
+close) — exactly the trajectory that outcome-only filtering loses and combined
+rewards keep.
 4. **Long**: world–agent coevolution (a generator process that rolls new worlds
    at the frontier of the agent's competence — POET-shaped); cross-world
    methodology transfer (does a busybeaver-evolved methodology help in a

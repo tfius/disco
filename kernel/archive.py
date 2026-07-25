@@ -68,6 +68,15 @@ def resolve_question(slug: str):
         path.unlink()
 
 
+def tool_imports(code: str) -> list:
+    """Tool modules this code imports — the claim's dependency edge list."""
+    stems = {t.stem for t in config.TOOLS.glob("*.py")} if config.TOOLS.exists() else set()
+    found = {m.group(1) for m in
+             re.finditer(r"^\s*(?:from|import)\s+([A-Za-z_]\w*)", code, re.M)
+             if m.group(1) in stems}
+    return sorted(found)
+
+
 def verify_all(on_event=print) -> dict:
     """Claims-rot audit with selection: re-run every archived check. A claim whose
     check fails reality CULL_AFTER times in a row is demoted to an open question —
@@ -93,14 +102,17 @@ def verify_all(on_event=print) -> dict:
             continue
         fails = meta.get("verify_fails", 0) + 1
         failed.append(d.name)
+        deps = tool_imports(check.read_text()) if check.exists() else []
+        dep_note = f" — check imports: {', '.join(deps)} (suspect dependencies)" if deps else ""
         if fails >= config.CULL_AFTER:
-            _demote(d, fails)
+            _demote(d, fails, meta.get("thread"))
             culled.append(d.name)
-            on_event(f"  CULLED: {d.name} — check failed reality {fails}x in a row, demoted to open question")
+            on_event(f"  CULLED: {d.name} — check failed reality {fails}x in a row, "
+                     f"demoted to open question{dep_note}")
         else:
             meta["verify_fails"] = fails
             meta_file.write_text(json.dumps(meta, indent=2))
-            on_event(f"  ROTTED: {d.name} (consecutive fails: {fails}/{config.CULL_AFTER})")
+            on_event(f"  ROTTED: {d.name} (consecutive fails: {fails}/{config.CULL_AFTER}){dep_note}")
     entry = {"total": len(claims), "passed": len(claims) - len(failed),
              "failed": failed, "culled": culled}
     ledger.log("verify", **entry)
@@ -109,10 +121,13 @@ def verify_all(on_event=print) -> dict:
     return entry
 
 
-def _demote(claim_dir: Path, fails: int):
+def _demote(claim_dir: Path, fails: int, thread: str = None):
     """Reality vetoed the claim repeatedly: off the wall, back into open questions."""
     import shutil
+    from . import evolve
     statement = _first_line(claim_dir / "claim.md")
+    if thread:
+        evolve.attribute_cull(thread, claim_dir.name, on_event=lambda m: None)
     body = (claim_dir / "claim.md").read_text() if (claim_dir / "claim.md").exists() else ""
     check = (claim_dir / "check.py").read_text() if (claim_dir / "check.py").exists() else ""
     save_question(

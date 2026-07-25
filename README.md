@@ -152,6 +152,11 @@ python3 disco.py audit        # naive-agent uplift measurement
 python3 disco.py verify       # re-run every claim check (claims-rot audit)
 python3 disco.py reset        # fresh start — stashes the world's archive/runs/ledger into attic/<world>-<ts>/
 python3 disco.py seed "sqlite transaction semantics" "when does a write lock actually engage?"
+python3 disco.py stats        # discovery-efficiency metrics (surprise, closure)
+python3 disco.py deps         # claim -> tool dependency graph
+python3 disco.py export       # threads -> training episodes (JSONL)
+python3 disco.py genworld 7 --family modpoly   # contamination-free random world
+python3 disco.py grind 100 101 102 -n 3        # batch: generate + run + export
 ```
 
 `seed` is the human steering channel: it parks a question in the world's `archive/open-questions/`,
