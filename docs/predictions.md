@@ -17,7 +17,8 @@ boundary, harness strain, and the methodology each world should select for):
 [python](predictions/python.md) · [sim-life](predictions/sim-life.md) ·
 [eca](predictions/eca.md) · [sandpile](predictions/sandpile.md) ·
 [busybeaver](predictions/busybeaver.md) · [logistic](predictions/logistic.md) ·
-[random-graphs](predictions/random-graphs.md) · [ipd](predictions/ipd.md)
+[random-graphs](predictions/random-graphs.md) · [ipd](predictions/ipd.md) ·
+[gen-* (generated worlds)](predictions/gen-worlds.md)
 
 ---
 
