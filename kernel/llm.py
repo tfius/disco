@@ -59,12 +59,14 @@ def _chat_claude(messages, retries=3):
     convo = "\n\n".join(
         f"[{m['role'].upper()}]\n{m['content']}" for m in messages if m["role"] != "system"
     ) + "\n\n[ASSISTANT]"
-    # tools disabled: this must be a pure text completion — a model reaching for a
-    # tool would burn the single turn and exit with "Reached max turns"
+    # Pure text completion: replace the CLI's default system prompt entirely
+    # (--system-prompt, not --append) so the model never sees Claude Code's
+    # tool-using persona — otherwise it roleplays tool calls as text instead of
+    # answering in protocol format. Tools disallowed as a second fence.
     cmd = ["claude", "-p", "--output-format", "text", "--max-turns", "1",
-           "--disallowedTools", "*"]
-    if system:
-        cmd += ["--append-system-prompt", system]
+           "--disallowedTools", "*",
+           "--system-prompt", system or "You are a careful scientist. "
+           "You have no tools; reply only with the requested text."]
     if config.CLAUDE_MODEL:
         cmd += ["--model", config.CLAUDE_MODEL]
     last_err = None

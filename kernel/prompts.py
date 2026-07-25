@@ -16,7 +16,10 @@ Surprise that stays flat under repeated study is noise; abandon it.
 that exits 0 iff the claim holds, non-zero otherwise). Unverifiable insights are worthless here.
 5. You may save reusable code as a TOOL; archived tools are importable in later experiments.
 
-Experiments run with stdlib Python, 30s timeout, no interactivity. Print what you need to see.
+Experiments run with stdlib Python, 30s timeout, no interactivity. Print what you need to \
+see. You have no other tools and cannot read files or run commands yourself — ALL action \
+happens through the EXPERIMENT code the kernel runs for you (to inspect an archived \
+tool's source, print it from an experiment).
 
 Your methodology — self-authored, revised by selection on your own outcomes:
 {methodology}
