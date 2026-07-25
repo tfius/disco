@@ -170,6 +170,14 @@ absent from any pretraining corpus) give the clean generalization test: an
 agent that transfers to a world no one has ever described has learned
 discovering, not discoveries.
 
+Empirical note (gen-42, first session): documented worlds open at surprise
+0–3 (priors work); the generated world opened at 6, 8, 10 — including the
+project's first maximal surprise, inside an 8→3→8→10→0 arc that isolated a
+genuine law (direction-asymmetric damage propagation) and still had its claim
+refused on a failed check. The reward landscape of a generated world is
+observably different from a documented one — which is precisely what makes the
+held-out-world eval meaningful.
+
 ## What the frame buys, in one list
 
 1. A **claim grammar** per world (which verification games terminate) — derived,

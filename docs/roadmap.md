@@ -56,10 +56,27 @@ kernel change, in order:
    claims?), leader/follower signaling (do agents free-ride on each other's
    surprise gradients?).
 
+## First empirical result: the surprise signature
+
+gen-42's first session (2026-07-25) validated the contamination argument with
+data. First contact with documented worlds (sim-life, eca) opened at surprise
+0–3 — priors doing the work, "discovery" partly recall. First contact with
+gen-42 opened at 6, 8, 10 — the project's first maximal surprise — because no
+priors exist. The thread-3 arc (8, 3, 8, 10, 0) discovered a genuine law of the
+generated universe (damage propagation is direction-asymmetric: a 1→0 flip
+spreads unbounded, a 0→1 flip stays frozen forever), closed it to surprise 0,
+and still had its claim refused on a failed check — the mechanism holding at
+peak drama. **Mean first-contact surprise now measurably separates recall from
+discovery**, which gives the RL framing its eval signature: on generated
+worlds, surprise is high and earned, and a model that has learned discovering
+should close it efficiently. `disco stats` reports these numbers per world;
+the per-episode surprise trajectories in `disco export` are the process signal.
+
 ## Sequencing
 
-1. **Now**: export + genworld (done); first generated-world session to validate
-   that discovery works on territory with zero pretraining support.
+1. **Now**: export + genworld (done); first generated-world session (done —
+   above); world families beyond CA (`genworld --family modpoly|tag`) and
+   per-world discovery-efficiency stats (done).
 2. **Short**: batch rollout runner; delayed verify-survival fitness; dependency
    tracking in verify (claims declare tool/prover imports; cull cascades).
 3. **Mid**: multi-agent steps 1–4; calibration dataset extraction.

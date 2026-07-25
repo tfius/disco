@@ -66,6 +66,7 @@ def episodes(out_path=None):
             outcome = {"thread": thread, "ending": ending,
                        "admitted": bool(led_out.get("admitted")),
                        "parked": "unreplicated" in str(led_out.get("slug", ""))}
+            surprises = [s["surprise"] for s in steps if "surprise" in s]
             episode = {
                 "world": config.WORLD,
                 "thread": thread,
@@ -74,6 +75,10 @@ def episodes(out_path=None):
                 "slug": led_out.get("slug"),
                 "admitted": outcome["admitted"],
                 "reward": evolve.score(outcome),
+                "mean_surprise": round(sum(surprises) / len(surprises), 2) if surprises else None,
+                "closure": (surprises[0] - surprises[-1]) if len(surprises) >= 2 else None,
+                "calibration": [[s.get("confidence"), s["surprise"]]
+                                for s in steps if "surprise" in s],
             }
             slug = led_out.get("slug")
             if ending == "claim" and outcome["admitted"] and slug:

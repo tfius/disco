@@ -82,37 +82,79 @@ def cmd_evolve(args):
         print("\nno challenger on trial (one will be proposed at next run)")
 
 
+def cmd_stats(args):
+    from kernel import stats
+    print(f"world: {config.WORLD}")
+    print(stats.render(stats.compute()))
+
+
 def cmd_export(args):
     path, count = export.episodes(args.out)
     print(f"exported {count} episodes -> {path}")
 
 
-def cmd_genworld(args):
-    """Procedurally generated CA world — rule rolled from a seed, so its truths
-    cannot exist in any pretraining corpus. The contamination-free territory."""
-    import random as _random
-    rng = _random.Random(args.seed)
+GEN_CLOSING = ("This system was generated at random from seed {seed}; nothing about it "
+               "exists in any literature — every law is undiscovered, and there are no "
+               "names for anything: define every term operationally. Claims must be "
+               "exact, seeded, and checked by re-running the system.\n")
+
+
+def _gen_ca(rng, seed):
     k, r = rng.choice([(2, 2), (3, 1)])  # never (2,1): elementary CAs are documented
     n = k ** (2 * r + 1)
     table = [rng.randrange(k) for _ in range(n)]
     table[0] = 0  # quiescent background so structure has somewhere to live
-    name = f"gen-{args.seed}"
+    return (f"{k} states, radius {r}, {n}-entry random table",
+            f"Your world is a one-dimensional cellular automaton with {k} states and "
+            f"radius {r}, on finite cyclic tapes and bounded windows. Each cell's next "
+            f"state is given by this rule table, indexed by the neighborhood read as a "
+            f"base-{k} number (leftmost cell most significant):\n\n{table}\n\n"
+            f"Implement the rule once as a tool, validate it against the table, then "
+            f"discover: backgrounds and invariants, cycle structure on small widths, "
+            f"particles and their collisions, statistical behavior of random tapes. ")
+
+
+def _gen_modpoly(rng, seed):
+    m = rng.randrange(53, 251)
+    coeffs = [rng.randrange(m) for _ in range(4)]  # a0 + a1 x + a2 x^2 + a3 x^3
+    return (f"x -> ({coeffs[3]}x^3+{coeffs[2]}x^2+{coeffs[1]}x+{coeffs[0]}) mod {m}",
+            f"Your world is the dynamical system f(x) = ({coeffs[3]}*x**3 + "
+            f"{coeffs[2]}*x**2 + {coeffs[1]}*x + {coeffs[0]}) % {m} iterated on "
+            f"Z_{m} = {{0..{m - 1}}}. Discover its functional graph exactly: fixed "
+            f"points, cycle spectrum, tail lengths, preimage structure (which points "
+            f"have none, the in-degree distribution), how orbits of all {m} starting "
+            f"points partition, and any algebraic structure that explains what you "
+            f"find. The full graph is exhaustively computable — exact claims only. ")
+
+
+def _gen_tag(rng, seed):
+    d = rng.choice([2, 3])
+    prods = {s: "".join(rng.choice("ab") for _ in range(rng.randrange(0, 5)))
+             for s in "ab"}
+    return (f"tag system d={d}, a->{prods['a'] or 'ε'}, b->{prods['b'] or 'ε'}",
+            f"Your world is a tag system on the alphabet {{a, b}}: at each step, if "
+            f"the word has fewer than {d} symbols the system halts; otherwise read "
+            f"the first symbol, delete the first {d} symbols, and append 'a' -> "
+            f"'{prods['a']}' or 'b' -> '{prods['b']}' (empty string allowed). "
+            f"Discover: which initial words halt, grow forever, or cycle; growth "
+            f"rates; periodic structures; decidable non-halting patterns. Bound every "
+            f"simulation with explicit step budgets, and phrase non-halting claims "
+            f"only via decidable certificates. ")
+
+
+def cmd_genworld(args):
+    """Procedurally generated world — rules rolled from a seed, so their truths
+    cannot exist in any pretraining corpus. The contamination-free territories."""
+    import random as _random
+    rng = _random.Random(f"{args.family}-{args.seed}")
+    summary, body = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag}[args.family](rng, args.seed)
+    name = f"gen-{args.seed}" if args.family == "ca" else f"gen-{args.family}-{args.seed}"
     config.set_world(name)
     if (config.WORLD_DIR / "world.md").exists():
         sys.exit(f"world '{name}' already exists — run it: python3 disco.py -w {name} run")
     config.ensure_dirs()
-    (config.WORLD_DIR / "world.md").write_text(
-        f"Your world is a one-dimensional cellular automaton with {k} states and "
-        f"radius {r}, on finite cyclic tapes and bounded windows. Each cell's next "
-        f"state is given by this rule table, indexed by the neighborhood read as a "
-        f"base-{k} number (leftmost cell most significant):\n\n{table}\n\n"
-        f"This rule was generated at random from seed {args.seed}; nothing about it "
-        f"exists in any literature — every law is undiscovered. Implement the rule "
-        f"once as a tool, validate it against the table, then discover: backgrounds "
-        f"and invariants, cycle structure on small widths, particles and their "
-        f"collisions, statistical behavior of random tapes. Claims must be exact, "
-        f"seeded, and checked by running the automaton.\n")
-    print(f"world '{name}' created — {k} states, radius {r}, {n}-entry random table")
+    (config.WORLD_DIR / "world.md").write_text(body + GEN_CLOSING.format(seed=args.seed))
+    print(f"world '{name}' created — {summary}")
     print(f"run: python3 disco.py -w {name} run -n 3")
 
 
@@ -182,9 +224,13 @@ def main():
     ex = sub.add_parser("export", help="export the world's threads as training episodes (JSONL)")
     ex.add_argument("-o", "--out", default=None, help="output path (default exports/<world>.jsonl)")
     ex.set_defaults(fn=cmd_export)
-    gw = sub.add_parser("genworld", help="generate a contamination-free random-CA world from a seed")
-    gw.add_argument("seed", type=int, help="generation seed -> worlds/gen-<seed>/")
+    gw = sub.add_parser("genworld", help="generate a contamination-free random world from a seed")
+    gw.add_argument("seed", type=int, help="generation seed")
+    gw.add_argument("--family", choices=["ca", "modpoly", "tag"], default="ca",
+                    help="world family: 1D cellular automaton, polynomial map on Z_m, tag system")
     gw.set_defaults(fn=cmd_genworld)
+    st = sub.add_parser("stats", help="discovery-efficiency metrics for the world")
+    st.set_defaults(fn=cmd_stats)
     args = p.parse_args()
     if args.world:
         config.set_world(args.world)
