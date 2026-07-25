@@ -73,9 +73,11 @@ def episodes(out_path=None):
                 if "surprise" in s:
                     s["process_reward"] = (prev - s["surprise"]) if prev is not None else None
                     prev = s["surprise"]
+            first_led = step_map.get((thread, 1), {})
             episode = {
                 "world": config.WORLD,
                 "thread": thread,
+                "agent": first_led.get("agent", "solo"),
                 "steps": steps,
                 "ending": ending,
                 "slug": led_out.get("slug"),

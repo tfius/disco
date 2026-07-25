@@ -258,14 +258,16 @@ def _bank_tool(payload: dict, thread_id: str, on_event):
 def _finish(decision, payload, thread_id, trajectory, focus, on_event) -> dict:
     if decision == "CLAIM":
         res = archive.admit_claim(payload["claim"], payload["check"], thread_id, trajectory)
-        ledger.log("claim", thread=thread_id, slug=res["slug"], admitted=res["admitted"])
+        reason = res.get("reason", "check failed")
+        ledger.log("claim", thread=thread_id, slug=res["slug"], admitted=res["admitted"],
+                   **({} if res["admitted"] else {"reason": reason}))
         if res["admitted"]:
             on_event(f"  CLAIM admitted: {res['slug']}")
             m = re.match(r"question:\s*([a-z0-9-]+)", focus.strip(), re.I)
             if m:
                 archive.resolve_question(m.group(1))
         else:
-            on_event(f"  CLAIM rejected — check failed: {res['slug']}")
+            on_event(f"  CLAIM rejected — {reason}: {res['slug']}")
         return {"ending": "claim", "admitted": res["admitted"], "slug": res["slug"]}
     if decision == "QUESTION":
         lines = payload["question"].strip().splitlines()
