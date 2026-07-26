@@ -298,6 +298,85 @@ the competence frontier → `run` / `grind` / `rollout` fill `exports/` with
 reward-labeled trajectories → your trainer consumes the JSONL. See
 [docs/roadmap.md](docs/roadmap.md) for the recipe mapping.
 
+### How to train on them
+
+One episode (one thread) looks like this — every field is emitted by
+`disco export`, nothing is inferred later:
+
+```json
+{
+  "world": "gen-1002", "agent": "bob", "thread": "20260726-...", "slug": "on-rule-...",
+  "ending": "claim", "admitted": true, "reward": 3.0,
+  "mean_surprise": 5.0, "closure": 8,
+  "filters": {"gate_passed": true, "verified_alive": true, "closed_surprise": true},
+  "calibration": [[35, 5], [80, 1]],
+  "steps": [
+    {"n": 1, "focus": "cycle structure", "prediction": "...", "confidence": 35,
+     "code": "from ca_rule import step\n...", "objective": "held",
+     "result": {"exit": 0, "stdout": "...", "stderr": "", "timeout": false},
+     "surprise": 5, "process_reward": null, "judge_note": "..."},
+    {"n": 2, "...": "...", "surprise": 1, "process_reward": 4}
+  ],
+  "claim": "For rule ... every cyclic tape of width W ...",
+  "check": "import sys; ...\nsys.exit(0 if ... else 1)",
+  "transcript": [{"role": "system", "content": "..."}, {"role": "assistant", "content": "..."}]
+}
+```
+
+**SFT — clone successful discovery, filtered two ways (the Nanbeige move).**
+`transcript` is already the exact message sequence the model emitted, so it is
+a ready fine-tuning target; filter it at two granularities:
+
+```python
+import json
+episodes = [json.loads(l) for l in open("exports/gen-1002.jsonl")]
+
+# trajectory-level: keep threads whose discovery passed its check AND survived
+# reality's later re-checks; require closed_surprise for the strongest set
+keep = [e for e in episodes
+        if e["filters"]["gate_passed"] and e["filters"]["verified_alive"]
+        and e["filters"]["closed_surprise"]]
+
+# turn-level: drop the steps where the agent's OWN committed assertions failed
+for e in keep:
+    e["steps"] = [s for s in e["steps"] if s.get("objective") != "violated"]
+    # → SFT on e["transcript"], or prompt = system+prior turns, completion = assistant turn
+```
+
+**GRPO — group-relative advantages (rollout exports only).** `disco rollout`
+tags each of the G trajectories with a shared `group`; bucket and normalize:
+
+```python
+from collections import defaultdict
+groups = defaultdict(list)
+for l in open("exports/rollouts-gen-1002.jsonl"):
+    e = json.loads(l)
+    groups[e["group"]].append(e)
+
+for eps in groups.values():
+    # shade the (often saturated) outcome reward with process signal before
+    # normalizing — strong models land +3 every rollout, so closure carries the group
+    shaped = [e["reward"] + 0.3 * (e["closure"] or 0) for e in eps]
+    mu = sum(shaped) / len(shaped)
+    sd = (sum((x - mu) ** 2 for x in shaped) / len(shaped)) ** 0.5
+    for e, x in zip(eps, shaped):
+        e["advantage"] = (x - mu) / sd if sd else 0.0   # feed to your policy update
+```
+
+Rewards are execution-anchored (gate + verify, not judge opinion), so the
+advantages resist hacking. Logprobs, KL-to-reference, and token-level credit
+are your trainer's job — disco supplies `(context, trajectory, reward, group)`.
+
+**Calibration head.** The `calibration` (confidence, surprise) pairs train a
+confidence predictor under a proper scoring rule; the corpus already carries the
+signal (r ≈ −0.54, confidence anti-correlates with surprise).
+
+**Uncontaminated eval.** Train on one set of `genworld` seeds, evaluate on
+held-out seeds (`--difficulty` to raise the bar). The score is first-contact
+surprise closure on worlds the model has never seen: transfer means it learned
+*to discover*, not the discoveries. `disco stats` reports the per-world numbers;
+`disco calib` aggregates calibration across worlds.
+
 ## Deeper docs
 
 - [docs/games.md](docs/games.md) — the game-theoretic skeleton: claim admission
