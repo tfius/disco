@@ -144,9 +144,20 @@ def _gen_ca(rng, seed, difficulty=0):
             f"particles and their collisions, statistical behavior of random tapes. ")
 
 
+def _is_prime(n):
+    if n < 2 or n % 2 == 0:
+        return n == 2
+    return all(n % d for d in range(3, int(n ** 0.5) + 1, 2))
+
+
 def _gen_modpoly(rng, seed, difficulty=0):
     lo, hi = [(53, 251), (251, 1500), (1500, 8000)][min(difficulty, 2)]
+    # prime modulus above tier 0: composite m leaks CRT decomposition the model
+    # already knows (observed live twice) — primes force genuine graph discovery
     m = rng.randrange(lo, hi)
+    if difficulty > 0:
+        while not _is_prime(m):
+            m = rng.randrange(lo, hi)
     coeffs = [rng.randrange(m) for _ in range(4)]  # a0 + a1 x + a2 x^2 + a3 x^3
     return (f"x -> ({coeffs[3]}x^3+{coeffs[2]}x^2+{coeffs[1]}x+{coeffs[0]}) mod {m}",
             f"Your world is the dynamical system f(x) = ({coeffs[3]}*x**3 + "

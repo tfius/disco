@@ -1,7 +1,8 @@
 {
   "active": [
     "gen-tag-1001",
-    "gen-1002"
+    "gen-1002",
+    "gen-modpoly-1003"
   ],
   "retired": [
     {
@@ -9,6 +10,6 @@
       "why": "graduated"
     }
   ],
-  "next_seed": 1003,
+  "next_seed": 1004,
   "difficulty": 1
 }

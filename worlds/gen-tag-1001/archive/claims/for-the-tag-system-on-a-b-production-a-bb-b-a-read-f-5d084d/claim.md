@@ -1,0 +1,1 @@
+For the tag system on {a,b} (production a→bb, b→a; read first symbol, delete first two, append production), every word of the form a^n (n≥1, all-'a' word of length n) halts in exactly t = 2(n-1) steps, and the final word at halt (length <2) is always the single symbol 'a' (never 'b', never empty). Verified exhaustively for n=1..500 with per-n step budget 2n+10.
