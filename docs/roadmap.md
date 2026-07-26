@@ -111,6 +111,16 @@ groups must be sampled at the coevolve frontier, which is what the frontier
 is for. `--commit-best` turns group sampling into a best-of-G archive-growth
 policy: better training data and a better archive from the same compute.
 
+Empirical conclusion after two live groups (10 rollouts, gen-42 and the
+frontier world gen-1002): outcome reward saturates at +3 for a strong model —
+every rollout lands some admitted claim — while process signals vary widely
+within the same group (closure −8..+9, mean surprise 0.0..6.33). For GRPO on
+strong models the group reward must be outcome shaded with process terms; all
+needed fields ship in every episode, so the weighting stays a trainer-side
+choice. Same lesson applied to best-of-G selection: outcome ties now break
+toward highest closure, then mean surprise — the first pure-outcome pick chose
+the rollout that asked a question it already knew the answer to.
+
 ## External recipe check (Nanbeige 4.2-3B)
 
 A published compact-agent recipe maps 1:1 onto disco's outputs: environment

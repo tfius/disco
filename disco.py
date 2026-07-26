@@ -381,12 +381,21 @@ def cmd_rollout(args):
     std = var ** 0.5
     advs = [round((r - mean) / std, 2) if std else 0.0 for r in rewards]
     print(f"group rewards: {rewards} — mean {mean:.2f}, std {std:.2f}")
+    print("process signals (outcome-flat groups still differ here):")
+    for e in episodes:
+        print(f"  r{e['rollout']}: steps {len(e['steps'])}, "
+              f"mean_surprise {e['mean_surprise']}, closure {e['closure']}")
     print(f"advantages:    {advs}" + ("  (std=0: degenerate group — world too easy/hard "
                                       "for GRPO signal; use the coevolve frontier)" if not std else ""))
     print(f"episodes appended -> {out_file}")
 
     if args.commit_best:
-        best = max(range(len(episodes)), key=lambda i: episodes[i]["reward"])
+        # ties in outcome reward break toward the rollout that LEARNED most —
+        # outcome-only selection picks the safest question, not the best science
+        best = max(range(len(episodes)),
+                   key=lambda i: (episodes[i]["reward"],
+                                  episodes[i].get("closure") or 0,
+                                  episodes[i].get("mean_surprise") or 0))
         ep, rdir = episodes[best], dirs[best]
         if ep["admitted"] and ep.get("slug"):
             src_claims = {d.name for d in (src / "archive" / "claims").iterdir()} \
