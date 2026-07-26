@@ -8,12 +8,20 @@ You explore this world through Python experiments you write. Nothing you believe
 until the world confirms it.
 
 Protocol per step:
-1. Commit a PREDICTION of the exact outcome before your code runs.
-2. The kernel executes your EXPERIMENT and scores your surprise (0-10) against your prediction.
+1. Commit a PREDICTION of the exact outcome before your code runs. Strong predictions \
+also commit PREDICT_CODE: executable assertions the kernel runs against the actual \
+result (variables available: stdout, exit_code, timeout) — the objective part of your bet.
+2. The kernel executes your EXPERIMENT and scores your surprise (0-10) against your \
+prediction. When PREDICT_CODE ran, its verdict bounds the score: assertions held caps \
+surprise at 3, violated floors it at 6 — the judge only grades nuance within those bands.
 3. Pursue surprise that SHRINKS as you investigate — that is learnable structure. \
 Surprise that stays flat under repeated study is noise; abandon it.
 4. Knowledge enters the archive only as a CLAIM with a runnable check (a Python script \
 that exits 0 iff the claim holds, non-zero otherwise). Unverifiable insights are worthless here.
+4b. A claim may be a LAW: a generalization that strictly subsumes archived claims. \
+Declare the subsumed claim slugs and the kernel folds them into the law — the archive \
+COMPRESSES as understanding grows. A law's check must cover the subsumed content plus \
+at least one fresh instance the law predicts.
 5. You may save reusable code as a TOOL; archived tools are importable in later experiments.
 
 Experiments run with stdlib Python, 30s timeout, no interactivity. Print what you need to \
@@ -63,6 +71,12 @@ what you expect the experiment to output/do, specific enough to be falsified
 ### CONFIDENCE
 integer 0-100
 
+### PREDICT_CODE
+```python
+# optional but strong: assertions against the result (stdout, exit_code, timeout)
+assert ...
+```
+
 ### EXPERIMENT
 ```python
 your code
@@ -71,7 +85,7 @@ your code
 STEP_RESULT = """RESULT:
 {result}
 
-KERNEL SURPRISE SCORE: {surprise}/10 — {judge_note}
+{objective_line}KERNEL SURPRISE SCORE: {surprise}/10 — {judge_note}
 Your surprise trajectory this thread: {trajectory}
 
 The kernel admits a claim only when backed by at least {min_claim} experiments in this \
@@ -83,9 +97,13 @@ Decide. Respond in exactly this format:
 ### DECISION
 one of: CONTINUE | CLAIM | QUESTION | NOISE
 
-CONTINUE — dig deeper (add ### PREDICTION, ### CONFIDENCE, ### EXPERIMENT sections).
+CONTINUE — dig deeper (add ### PREDICTION, ### CONFIDENCE, optional ### PREDICT_CODE, \
+### EXPERIMENT sections).
 CLAIM — you understand something now (add ### CLAIM: a precise one-paragraph statement, \
-and ### CHECK: ```python``` that exits 0 iff the claim holds). Ends the thread.
+and ### CHECK: ```python``` that exits 0 iff the claim holds; if the claim is a LAW \
+generalizing archived claims, add ### SUPERSEDES listing their slugs one per line — \
+the kernel folds them into the law, and your check must cover their content plus a \
+fresh instance). Ends the thread.
 QUESTION — surprising but not yet understood; park it (add ### QUESTION: a title line, \
 then the open question and what you tried). Ends the thread.
 NOISE — surprise did not shrink; unlearnable (add one line ### WHY). Ends the thread.

@@ -60,7 +60,10 @@ and the agent discovers everything inside it.
 
 Each thread (up to 8 steps):
 
-1. **PREDICT** — the agent commits an expected outcome + confidence *before* execution.
+1. **PREDICT** — the agent commits an expected outcome + confidence *before* execution;
+   strong predictions add **PREDICT_CODE**, executable assertions the kernel runs
+   against the actual result — held caps surprise at 3, violated floors it at 6,
+   so the objective verdict bounds the judge instead of the other way around.
 2. **RUN** — the kernel executes the experiment (subprocess, 30s timeout). Only oracle.
 3. **SURPRISE** — a separate judge call (fresh context, no memory of the agent's
    reasoning) scores prediction vs. reality, 0–10. Kernel-logged, unfakeable.
@@ -70,6 +73,9 @@ Each thread (up to 8 steps):
 Frozen rules:
 
 - **No claim without a check.** `check.py` must exit 0 or the claim is rejected.
+- **Laws compress the archive.** A claim may supersede archived claims it strictly
+  generalizes: the kernel folds them into the law (its check inherits their burden),
+  and the index shrinks as understanding grows.
 - **No claim without replication.** Claims backed by fewer than 2 experiments are
   refused; if the agent insists, the kernel parks the claim as an open question.
 - **Learnability over novelty.** Interesting = surprise that shrinks under study.

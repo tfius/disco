@@ -53,7 +53,7 @@ def episodes(out_path=None):
                 if rf.exists():
                     step["result"] = json.loads(rf.read_text())
                 led = step_map.get((thread, i), {})
-                for key in ("surprise", "judge_note", "confidence", "focus"):
+                for key in ("surprise", "judge_note", "confidence", "focus", "objective"):
                     if key in led:
                         step[key] = led[key]
                 steps.append(step)

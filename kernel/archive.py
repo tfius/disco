@@ -16,8 +16,12 @@ def slugify(text: str, maxlen: int = 60) -> str:
     return slug or f"item-{int(time.time())}"
 
 
-def admit_claim(statement: str, check_code: str, thread_id: str, history: list) -> dict:
-    """Run the check; admit the claim only if it exits 0."""
+def admit_claim(statement: str, check_code: str, thread_id: str, history: list,
+                supersedes: list = None) -> dict:
+    """Run the check; admit the claim only if it exits 0. A law claim may
+    supersede archived claims it generalizes: they are folded into the law's
+    dir (subsumed/), the index shrinks, and the law's check carries their
+    verification burden — the archive compresses as understanding grows."""
     slug = slugify(statement)
     scratch = config.RUNS / thread_id / f"check-{slug}"
     result = world.run_python(check_code, scratch)
@@ -42,12 +46,24 @@ def admit_claim(statement: str, check_code: str, thread_id: str, history: list) 
     dest.mkdir(parents=True)
     (dest / "claim.md").write_text(statement.strip() + "\n")
     (dest / "check.py").write_text(check_code)
+    folded = []
+    for sub in (supersedes or []):
+        sub_dir = config.CLAIMS / sub
+        if sub != slug and sub_dir.exists():
+            import shutil
+            (dest / "subsumed").mkdir(exist_ok=True)
+            shutil.move(str(sub_dir), str(dest / "subsumed" / sub))
+            folded.append(sub)
     (dest / "meta.json").write_text(json.dumps({
         "thread": thread_id,
         "admitted_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "surprise_trajectory": history,
+        **({"supersedes": folded} if folded else {}),
     }, indent=2))
-    return {"admitted": True, "slug": slug, "result": result}
+    out = {"admitted": True, "slug": slug, "result": result}
+    if folded:
+        out["folded"] = folded
+    return out
 
 
 def save_question(title: str, body: str, thread_id: str) -> str:

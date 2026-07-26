@@ -35,12 +35,20 @@ def _experiment_fields(sec: dict) -> dict:
         if key not in sec:
             raise ParseError(f"missing ### {key}")
     conf = re.search(r"\d+", sec.get("CONFIDENCE", "50"))
-    return {
+    fields = {
         "focus": sec.get("FOCUS", ""),
         "prediction": sec["PREDICTION"],
         "confidence": min(100, int(conf.group()) if conf else 50),
         "code": _code(sec["EXPERIMENT"]),
     }
+    if "PREDICT_CODE" in sec:
+        try:
+            pc = _code(sec["PREDICT_CODE"])
+            compile(pc, "predict.py", "exec")
+            fields["predict_code"] = pc
+        except (ParseError, SyntaxError):
+            pass  # unusable assertions are dropped, not fatal — prose prediction stands
+    return fields
 
 
 def _syntax_error(code: str):
@@ -185,20 +193,39 @@ def _run_steps(thread_id, thread_dir, messages, trajectory, focus, outcome, on_e
         focus = parsed.get("focus") or focus
         step_dir = thread_dir / f"step-{step}"
         result = world.run_python(code, step_dir)
+
+        # objective surprise: committed assertions run against the actual result;
+        # their verdict bounds the judge (held caps at 3, violated floors at 6)
+        objective = None
+        if parsed.get("predict_code"):
+            preamble = (f"stdout = {result['stdout']!r}\n"
+                        f"exit_code = {result['exit']!r}\n"
+                        f"timeout = {result['timeout']!r}\n")
+            pres = world.run_python(preamble + parsed["predict_code"], step_dir / "predict")
+            objective = "held" if (not pres["timeout"] and pres["exit"] == 0) else "violated"
         verdict = judge_surprise(parsed["prediction"], parsed["confidence"], result)
+        if objective == "held":
+            verdict["surprise"] = min(verdict["surprise"], 3)
+        elif objective == "violated":
+            verdict["surprise"] = max(verdict["surprise"], 6)
         trajectory.append(verdict["surprise"])
 
         step_dir.mkdir(parents=True, exist_ok=True)
         (step_dir / "prediction.md").write_text(
             f"confidence: {parsed['confidence']}\n\n{parsed['prediction']}\n")
+        if parsed.get("predict_code"):
+            (step_dir / "predict_code.py").write_text(parsed["predict_code"])
         (step_dir / "result.json").write_text(json.dumps(result, indent=2))
         ledger.log("step", thread=thread_id, step=step, focus=focus,
                    confidence=parsed["confidence"], surprise=verdict["surprise"],
-                   judge_note=verdict["note"], exit=result["exit"], timeout=result["timeout"])
-        on_event(f"  step {step}: surprise {verdict['surprise']}/10 — {verdict['note']}")
+                   judge_note=verdict["note"], exit=result["exit"], timeout=result["timeout"],
+                   **({"objective": objective} if objective else {}))
+        obj_note = f" [assertions {objective}]" if objective else ""
+        on_event(f"  step {step}: surprise {verdict['surprise']}/10{obj_note} — {verdict['note']}")
 
         messages.append({"role": "user", "content": prompts.STEP_RESULT.format(
             result=world.format_result(result),
+            objective_line=(f"PREDICT_CODE assertions: {objective.upper()}\n" if objective else ""),
             surprise=verdict["surprise"],
             judge_note=verdict["note"],
             trajectory=trajectory,
@@ -221,6 +248,9 @@ def _parse_decision(resp: str):
         if "CLAIM" not in sec or "CHECK" not in sec:
             raise ParseError("CLAIM decision needs ### CLAIM and ### CHECK sections")
         payload = {"claim": sec["CLAIM"], "check": _code(sec["CHECK"])}
+        if "SUPERSEDES" in sec:
+            payload["supersedes"] = [l.strip() for l in sec["SUPERSEDES"].splitlines()
+                                     if l.strip()]
     elif decision == "QUESTION":
         if "QUESTION" not in sec:
             raise ParseError("QUESTION decision needs ### QUESTION section")
@@ -257,8 +287,12 @@ def _bank_tool(payload: dict, thread_id: str, on_event):
 
 def _finish(decision, payload, thread_id, trajectory, focus, on_event) -> dict:
     if decision == "CLAIM":
-        res = archive.admit_claim(payload["claim"], payload["check"], thread_id, trajectory)
+        res = archive.admit_claim(payload["claim"], payload["check"], thread_id, trajectory,
+                                  supersedes=payload.get("supersedes"))
         reason = res.get("reason", "check failed")
+        if res.get("folded"):
+            on_event(f"  LAW: folded {len(res['folded'])} subsumed claim(s) "
+                     f"into {res['slug']} — archive compressed")
         ledger.log("claim", thread=thread_id, slug=res["slug"], admitted=res["admitted"],
                    **({} if res["admitted"] else {"reason": reason}))
         if res["admitted"]:

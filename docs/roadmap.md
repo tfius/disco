@@ -83,6 +83,17 @@ the per-episode surprise trajectories in `disco export` are the process signal.
    with one transitive tool→tool hop; `disco calib` cross-world calibration
    (r(confidence, surprise) = −0.54 over the current corpus).
 
+## Epistemics upgrades (2026-07-26)
+
+- **Executable predictions**: PREDICT_CODE assertions run against the actual
+  result; the objective verdict bounds the judge (held ≤3, violated ≥6). The
+  surprise signal — and everything downstream: closure, process rewards,
+  evolution fitness — is now execution-anchored end to end. Per-step
+  `objective` field ships in exports.
+- **Theory threads**: claims can supersede archived claims they generalize;
+  the kernel folds instances into the law and the archive compresses. The
+  measure of understanding is now literally the shrinking of the index.
+
 ## Known limitations (honest ledger)
 
 - Trial contamination: champion outcomes recorded while no challenger exists

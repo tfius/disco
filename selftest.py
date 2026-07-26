@@ -45,6 +45,12 @@ prints True then False: compile-time constant folding interns small results with
 ### CONFIDENCE
 60
 
+### PREDICT_CODE
+```python
+assert "True" in stdout
+assert exit_code == 0
+```
+
 ### EXPERIMENT
 ```python
 from identity_probe import same_object_across_exec
@@ -98,6 +104,11 @@ prints the list itself, enabling chaining
 
 ### CONFIDENCE
 55
+
+### PREDICT_CODE
+```python
+assert "None" not in stdout
+```
 
 ### EXPERIMENT
 ```python
@@ -168,6 +179,10 @@ def scenario_gate():
     assert outcome["ending"] == "claim" and outcome["admitted"], outcome
     assert outcome["steps"] == 2, f"gate should have forced a second experiment: {outcome}"
     assert not list(config.QUESTIONS.glob("*.md")), "nothing should be parked"
+    s1 = [json.loads(l) for l in config.LEDGER.read_text().splitlines()
+          if json.loads(l)["kind"] == "step"][0]
+    assert s1.get("objective") == "violated" and s1["surprise"] >= 6, \
+        f"violated assertions must floor surprise at 6: {s1}"
     print("gate scenario OK — premature claim refused, replication forced, then admitted\n")
 
 
@@ -189,6 +204,11 @@ def main():
     assert (config.TOOLS / "identity_probe.py").exists(), "mid-thread tool banking failed"
     kinds = [json.loads(l)["kind"] for l in config.LEDGER.read_text().splitlines()]
     assert kinds == ["step", "tool", "step", "claim"], kinds
+    steps = [json.loads(l) for l in config.LEDGER.read_text().splitlines()
+             if json.loads(l)["kind"] == "step"]
+    assert "objective" not in steps[0], "step 1 committed no assertions"
+    assert steps[1].get("objective") == "held", steps[1]
+    assert steps[1]["surprise"] <= 3, "held assertions must cap surprise at 3"
     idx = archive.index()
     assert "int" in idx and "identity_probe" in idx
     assert "same_object_across_exec(literal_src)" in idx, f"signature missing from index:\n{idx}"
@@ -294,6 +314,25 @@ def scenario_cascade():
     print("cascade scenario OK — tool break rots then culls its dependent claim")
 
 
+def scenario_laws():
+    _patch_config()
+    config.ensure_dirs()
+    ok = "import sys; sys.exit(0)"
+    a = archive.admit_claim("Instance: f(3) cycles with period 2.", ok, "t1", [5, 1])
+    b = archive.admit_claim("Instance: f(5) cycles with period 4.", ok, "t2", [5, 1])
+    assert a["admitted"] and b["admitted"]
+    law = archive.admit_claim(
+        "Law: for all odd x, f(x) cycles with period x-1.", ok, "t3", [6, 1],
+        supersedes=[a["slug"], b["slug"], "nonexistent-slug"])
+    assert law["admitted"] and sorted(law["folded"]) == sorted([a["slug"], b["slug"]]), law
+    tops = [d.name for d in config.CLAIMS.iterdir()]
+    assert tops == [law["slug"]], f"archive must compress to the law alone: {tops}"
+    assert (config.CLAIMS / law["slug"] / "subsumed" / a["slug"] / "claim.md").exists()
+    meta = json.loads((config.CLAIMS / law["slug"] / "meta.json").read_text())
+    assert sorted(meta["supersedes"]) == sorted([a["slug"], b["slug"]])
+    print("laws scenario OK — instances folded into the law, archive compressed 3->1")
+
+
 def scenario_slug_collision():
     _patch_config()
     config.ensure_dirs()
@@ -314,3 +353,4 @@ if __name__ == "__main__":
     scenario_evolution()
     scenario_cascade()
     scenario_slug_collision()
+    scenario_laws()
