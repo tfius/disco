@@ -5,6 +5,11 @@
       "thread": "20260725-150544",
       "ending": "claim",
       "score": 3.0
+    },
+    {
+      "thread": "20260726-135300",
+      "ending": "claim",
+      "score": 3.0
     }
   ],
   "challenger": [
@@ -15,6 +20,11 @@
     },
     {
       "thread": "20260725-150813",
+      "ending": "claim",
+      "score": 3.0
+    },
+    {
+      "thread": "20260726-135535",
       "ending": "claim",
       "score": 3.0
     }
@@ -29,6 +39,14 @@
       "variant": "champion"
     },
     "20260725-150813": {
+      "gen": 1,
+      "variant": "challenger"
+    },
+    "20260726-135300": {
+      "gen": 1,
+      "variant": "champion"
+    },
+    "20260726-135535": {
       "gen": 1,
       "variant": "challenger"
     }

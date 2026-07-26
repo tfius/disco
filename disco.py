@@ -281,6 +281,8 @@ def cmd_coevolve(args):
                     st["active"].remove(name)
                     st["retired"].append({"name": name, "why": "too-hard"})
                     st["difficulty"] = max(0, st["difficulty"] - 1)
+            # persist after every world: a hard kill must not lose judgments
+            state_file.write_text(json.dumps(st, indent=2))
     finally:
         state_file.write_text(json.dumps(st, indent=2))
         print(f"coevolve state: {len(st['active'])} active, "

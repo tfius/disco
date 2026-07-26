@@ -1,10 +1,14 @@
 {
   "active": [
-    "gen-modpoly-1000",
     "gen-tag-1001",
     "gen-1002"
   ],
-  "retired": [],
+  "retired": [
+    {
+      "name": "gen-modpoly-1000",
+      "why": "graduated"
+    }
+  ],
   "next_seed": 1003,
-  "difficulty": 0
+  "difficulty": 1
 }
