@@ -34,7 +34,14 @@ density 0.78; and r-pentomino behavior under wraparound. In the **python** world
 history), it mapped what CPython 3.14 actually changed: incremental GC semantics, PEP
 649 deferred annotations, PEP 734 subinterpreters' two-tier object passing, PEP 750
 t-strings. Run `python3 disco.py -w sim-life verify` and watch reality re-confirm all
-of it, including the million-state census, from scratch.
+of it, including the million-state census, from scratch. In **generated worlds**
+(random rules no literature has ever described) the agent discovered laws with
+zero pretraining support — gen-42's damage propagation is direction-asymmetric:
+a 1→0 flip spreads unbounded while a 0→1 flip stays frozen forever, found
+through a surprise arc of 8→3→8→10→0. And in the first **multi-agent** session,
+two agents sharing one archive divided the territory between themselves with no
+coordinator (crowding overlap 0.246) — one of them discovering and claiming a
+bug in the archive's own instruments.
 
 ## Design
 
@@ -247,6 +254,43 @@ worlds/<name>/runs/             per-thread workdirs: predictions, code, results,
                                 can be replayed or forked
 worlds/<name>/ledger.jsonl      append-only, kernel-written
 ```
+
+## Trajectories: discovery as training data
+
+Every thread disco runs is a fully explained trajectory, and `disco export`
+turns them into training episodes (JSONL, one per thread):
+
+- **steps** — for each experiment: the committed prediction with stated
+  confidence, the code, the actual execution result, the judge's surprise score
+  (0–10), and a **process reward** (how much surprise this step closed).
+- **outcome reward** — the frozen mechanism fitness (+3 admitted, −2 rejected,
+  −3 later culled...), execution-anchored: computed by the gate and verify, not
+  by anyone's opinion.
+- **filters** — trajectory-level labels for data curation: `gate_passed`
+  (check actually exited 0), `verified_alive` (still surviving reality's
+  re-checks), `closed_surprise` (the thread learned, not just wandered).
+- **calibration** — (confidence, surprise) pairs per step; across the current
+  corpus, stated confidence anti-correlates with surprise at r ≈ −0.54: the
+  agent knows when it doesn't know.
+- **attribution** — which world, which agent lineage, and (for `disco rollout`)
+  a shared **group id**: G trajectories sampled from one frozen context, ready
+  for group-relative advantage computation (GRPO-style). Group-relative
+  normalization cancels per-world difficulty; saturated worlds yield std=0
+  groups, which is why groups are sampled at the coevolve frontier.
+
+What makes these episodes unusual as data: web text contains humanity's
+conclusions, while these trajectories contain the *revision process* — belief,
+falsification, correction, verification — with every label anchored in code
+that actually ran. Worlds rolled by `genworld` guarantee the truths involved
+exist in no pretraining corpus, so first-contact surprise separates recall from
+discovery measurably (documented worlds open at 0–3, generated ones at 5–8),
+and held-out generated worlds make the clean eval: transfer means the model
+learned discovering, not discoveries.
+
+The pipeline end to end: `coevolve` keeps a population of generated worlds at
+the competence frontier → `run` / `grind` / `rollout` fill `exports/` with
+reward-labeled trajectories → your trainer consumes the JSONL. See
+[docs/roadmap.md](docs/roadmap.md) for the recipe mapping.
 
 ## Deeper docs
 
