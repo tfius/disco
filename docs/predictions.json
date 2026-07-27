@@ -1,98 +1,472 @@
 {
   "meta": {
-    "registered": "2026-07-25",
+    "registered": "2026-07-25 (documented worlds), 2026-07-27 (new generated families)",
     "protocol": "Predictions committed before the threads run. status: open | confirmed | refuted | partial. Score confidence calibration when resolving. Never inject this file into agent context.",
     "confidence_scale": "0-100 subjective probability the prediction resolves confirmed"
   },
   "predictions": [
-    {"id": "py-1", "world": "python", "confidence": 85, "status": "open",
-     "claim": "Identifier-like string literals are interned at compile time; runtime concatenations are not, except via sys.intern"},
-    {"id": "py-2", "world": "python", "confidence": 90, "status": "open",
-     "claim": "Small-int cache is exactly [-5, 256]; identity survives arithmetic only via compile-time constant folding within one code object"},
-    {"id": "py-3", "world": "python", "confidence": 55, "status": "open",
-     "claim": "Specializing interpreter adaptation after ~8 stable-typed calls, de-optimization on type instability, observable via dis"},
-    {"id": "py-4", "world": "python", "confidence": 95, "status": "open",
-     "claim": "dict preserves insertion order; popitem() is LIFO by contract"},
-
-    {"id": "life-1", "world": "sim-life", "confidence": 80, "status": "open",
-     "claim": "Exact 2-glider collision outcome table for head-on and 90-degree geometries across all phase offsets"},
-    {"id": "life-2", "world": "sim-life", "confidence": 65, "status": "open",
-     "claim": "Glider eater constructed on a torus with exact consumed-in-N-generations claim"},
-    {"id": "life-3", "world": "sim-life", "confidence": 75, "status": "open",
-     "claim": "Ash density on NxN approaches 0.028-0.030 through N=64..128 within seeded tolerance"},
-    {"id": "life-4", "world": "sim-life", "confidence": 70, "status": "open",
-     "claim": "A (W,H) admissibility law for LWSS analogous to the glider's min(W,H) >= 5"},
-
-    {"id": "eca-1", "world": "eca", "confidence": 85, "status": "open",
-     "claim": "Mirror+complement symmetries collapse the 256 rules into exactly 88 equivalence classes"},
-    {"id": "eca-2", "world": "eca", "confidence": 70, "status": "open",
-     "claim": "Surjectivity census via balance condition; Moore-Myhill garden-of-Eden duality verified exhaustively for small N"},
-    {"id": "eca-3", "world": "eca", "confidence": 60, "status": "open",
-     "claim": "Cycle lengths of linear rules derived from the order of the rule polynomial modulo x^N-1 over GF(2)"},
-    {"id": "eca-4", "world": "eca", "confidence": 45, "status": "open",
-     "claim": "Rule 110/54 particle census: ether background, particle types, collision products (within ten sessions)"},
-    {"id": "eca-5", "world": "eca", "confidence": 70, "status": "open",
-     "claim": "Rule 30 center column passes basic randomness batteries at claimed lengths"},
-
-    {"id": "sand-1", "world": "sandpile", "confidence": 90, "status": "open",
-     "claim": "Abelian property discovered with surprise: final configuration invariant across seeded topple orders"},
-    {"id": "sand-2", "world": "sandpile", "confidence": 80, "status": "open",
-     "claim": "Stabilization bounds and time scaling on small N"},
-    {"id": "sand-3", "world": "sandpile", "confidence": 70, "status": "open",
-     "claim": "Recurrence characterized (burning test rediscovered or reinvented); exact recurrent census on 2x2 and 3x3"},
-    {"id": "sand-4", "world": "sandpile", "confidence": 65, "status": "open",
-     "claim": "Sandpile group identity element computed for N up to ~20 with exact per-N structure"},
-    {"id": "sand-5", "world": "sandpile", "confidence": 50, "status": "open",
-     "claim": "Group order = det(reduced Laplacian) = spanning tree count, verified exactly on small N"},
-    {"id": "sand-6", "world": "sandpile", "confidence": 60, "status": "open",
-     "claim": "Avalanche size power law under seeded driving with exponent in stated tolerance"},
-
-    {"id": "bb-1", "world": "busybeaver", "confidence": 95, "status": "open",
-     "claim": "n=1 census exact"},
-    {"id": "bb-2", "world": "busybeaver", "confidence": 85, "status": "open",
-     "claim": "Sigma(2)=4, S(2)=6 rediscovered with full n=2 census"},
-    {"id": "bb-3", "world": "busybeaver", "confidence": 75, "status": "open",
-     "claim": "Non-halting taxonomy (loops, runaway heads, translated cycling) with exact per-class counts"},
-    {"id": "bb-4", "world": "busybeaver", "confidence": 65, "status": "open",
-     "claim": "Sigma(3)=6, S(3)=21 with honest decided/undecided split"},
-    {"id": "bb-5", "world": "busybeaver", "confidence": 60, "status": "open",
-     "claim": "n=4 lower bounds via seeded champion search (full census: 25)"},
-    {"id": "bb-6", "world": "busybeaver", "confidence": 35, "status": "open",
-     "claim": "Meta-claim articulating that non-halting claims are conditional on decidable patterns"},
-
-    {"id": "log-1", "world": "logistic", "confidence": 90, "status": "open",
-     "claim": "Fixed point x*=1-1/r with stability lost at r=3, exact"},
-    {"id": "log-2", "world": "logistic", "confidence": 75, "status": "open",
-     "claim": "Period-2 branch destabilizes at exactly 1+sqrt(6), verified algebraically"},
-    {"id": "log-3", "world": "logistic", "confidence": 70, "status": "open",
-     "claim": "Feigenbaum delta estimated in [4.6, 4.75] from cascade ratios with stated tolerance"},
-    {"id": "log-4", "world": "logistic", "confidence": 65, "status": "open",
-     "claim": "Period-3 window opens at exactly 1+sqrt(8) via tangent bifurcation"},
-    {"id": "log-5", "world": "logistic", "confidence": 40, "status": "open",
-     "claim": "Lyapunov = ln 2 at r=4 via tent-map conjugacy or the sin^2 closed form"},
-
-    {"id": "rg-1", "world": "random-graphs", "confidence": 90, "status": "open",
-     "claim": "Seeded sampler + component machinery as first tools"},
-    {"id": "rg-2", "world": "random-graphs", "confidence": 85, "status": "open",
-     "claim": "Giant component jump across c=1, sharpening with n"},
-    {"id": "rg-3", "world": "random-graphs", "confidence": 45, "status": "open",
-     "claim": "Giant fraction matches solution of s = 1 - e^{-cs} across a c grid (numeric shape alone: 70)"},
-    {"id": "rg-4", "world": "random-graphs", "confidence": 60, "status": "open",
-     "claim": "Connectivity threshold at ln(n)/n with isolated vertices as the last obstruction"},
-    {"id": "rg-5", "world": "random-graphs", "confidence": 75, "status": "open",
-     "claim": "Degree distribution Poisson(c) fit with exact seeded statistics"},
-
-    {"id": "ipd-1", "world": "ipd", "confidence": 90, "status": "open",
-     "claim": "Tournament engine + classic roster as first tools, exact seeded payoffs"},
-    {"id": "ipd-2", "world": "ipd", "confidence": 80, "status": "open",
-     "claim": "TFT wins the classic Axelrod-style round-robin; niceness/retaliation/forgiveness pattern in exact results"},
-    {"id": "ipd-3", "world": "ipd", "confidence": 70, "status": "open",
-     "claim": "Under noise epsilon, TFT death-spirals; Pavlov/generous-TFT dominate, exact per-epsilon rankings"},
-    {"id": "ipd-4", "world": "ipd", "confidence": 65, "status": "open",
-     "claim": "Evolutionary dynamics: AllD invades AllC, TFT resists, exact seeded trajectories"},
-    {"id": "ipd-5", "world": "ipd", "confidence": 35, "status": "open",
-     "claim": "Extortion paradox rediscovered: a strategy winning every head-to-head while losing population dynamics (with ZD algebra: 15)"},
-    {"id": "ipd-6", "world": "ipd", "confidence": 55, "status": "open",
-     "claim": "Explicit meta-claim that dominance is non-transitive / ecology-relative"}
+    {
+      "id": "py-1",
+      "world": "python",
+      "confidence": 85,
+      "status": "open",
+      "claim": "Identifier-like string literals are interned at compile time; runtime concatenations are not, except via sys.intern"
+    },
+    {
+      "id": "py-2",
+      "world": "python",
+      "confidence": 90,
+      "status": "open",
+      "claim": "Small-int cache is exactly [-5, 256]; identity survives arithmetic only via compile-time constant folding within one code object"
+    },
+    {
+      "id": "py-3",
+      "world": "python",
+      "confidence": 55,
+      "status": "open",
+      "claim": "Specializing interpreter adaptation after ~8 stable-typed calls, de-optimization on type instability, observable via dis"
+    },
+    {
+      "id": "py-4",
+      "world": "python",
+      "confidence": 95,
+      "status": "open",
+      "claim": "dict preserves insertion order; popitem() is LIFO by contract"
+    },
+    {
+      "id": "life-1",
+      "world": "sim-life",
+      "confidence": 80,
+      "status": "open",
+      "claim": "Exact 2-glider collision outcome table for head-on and 90-degree geometries across all phase offsets"
+    },
+    {
+      "id": "life-2",
+      "world": "sim-life",
+      "confidence": 65,
+      "status": "open",
+      "claim": "Glider eater constructed on a torus with exact consumed-in-N-generations claim"
+    },
+    {
+      "id": "life-3",
+      "world": "sim-life",
+      "confidence": 75,
+      "status": "open",
+      "claim": "Ash density on NxN approaches 0.028-0.030 through N=64..128 within seeded tolerance"
+    },
+    {
+      "id": "life-4",
+      "world": "sim-life",
+      "confidence": 70,
+      "status": "open",
+      "claim": "A (W,H) admissibility law for LWSS analogous to the glider's min(W,H) >= 5"
+    },
+    {
+      "id": "eca-1",
+      "world": "eca",
+      "confidence": 85,
+      "status": "open",
+      "claim": "Mirror+complement symmetries collapse the 256 rules into exactly 88 equivalence classes"
+    },
+    {
+      "id": "eca-2",
+      "world": "eca",
+      "confidence": 70,
+      "status": "open",
+      "claim": "Surjectivity census via balance condition; Moore-Myhill garden-of-Eden duality verified exhaustively for small N"
+    },
+    {
+      "id": "eca-3",
+      "world": "eca",
+      "confidence": 60,
+      "status": "open",
+      "claim": "Cycle lengths of linear rules derived from the order of the rule polynomial modulo x^N-1 over GF(2)"
+    },
+    {
+      "id": "eca-4",
+      "world": "eca",
+      "confidence": 45,
+      "status": "open",
+      "claim": "Rule 110/54 particle census: ether background, particle types, collision products (within ten sessions)"
+    },
+    {
+      "id": "eca-5",
+      "world": "eca",
+      "confidence": 70,
+      "status": "open",
+      "claim": "Rule 30 center column passes basic randomness batteries at claimed lengths"
+    },
+    {
+      "id": "sand-1",
+      "world": "sandpile",
+      "confidence": 90,
+      "status": "open",
+      "claim": "Abelian property discovered with surprise: final configuration invariant across seeded topple orders"
+    },
+    {
+      "id": "sand-2",
+      "world": "sandpile",
+      "confidence": 80,
+      "status": "open",
+      "claim": "Stabilization bounds and time scaling on small N"
+    },
+    {
+      "id": "sand-3",
+      "world": "sandpile",
+      "confidence": 70,
+      "status": "open",
+      "claim": "Recurrence characterized (burning test rediscovered or reinvented); exact recurrent census on 2x2 and 3x3"
+    },
+    {
+      "id": "sand-4",
+      "world": "sandpile",
+      "confidence": 65,
+      "status": "open",
+      "claim": "Sandpile group identity element computed for N up to ~20 with exact per-N structure"
+    },
+    {
+      "id": "sand-5",
+      "world": "sandpile",
+      "confidence": 50,
+      "status": "open",
+      "claim": "Group order = det(reduced Laplacian) = spanning tree count, verified exactly on small N"
+    },
+    {
+      "id": "sand-6",
+      "world": "sandpile",
+      "confidence": 60,
+      "status": "open",
+      "claim": "Avalanche size power law under seeded driving with exponent in stated tolerance"
+    },
+    {
+      "id": "bb-1",
+      "world": "busybeaver",
+      "confidence": 95,
+      "status": "open",
+      "claim": "n=1 census exact"
+    },
+    {
+      "id": "bb-2",
+      "world": "busybeaver",
+      "confidence": 85,
+      "status": "open",
+      "claim": "Sigma(2)=4, S(2)=6 rediscovered with full n=2 census"
+    },
+    {
+      "id": "bb-3",
+      "world": "busybeaver",
+      "confidence": 75,
+      "status": "open",
+      "claim": "Non-halting taxonomy (loops, runaway heads, translated cycling) with exact per-class counts"
+    },
+    {
+      "id": "bb-4",
+      "world": "busybeaver",
+      "confidence": 65,
+      "status": "open",
+      "claim": "Sigma(3)=6, S(3)=21 with honest decided/undecided split"
+    },
+    {
+      "id": "bb-5",
+      "world": "busybeaver",
+      "confidence": 60,
+      "status": "open",
+      "claim": "n=4 lower bounds via seeded champion search (full census: 25)"
+    },
+    {
+      "id": "bb-6",
+      "world": "busybeaver",
+      "confidence": 35,
+      "status": "open",
+      "claim": "Meta-claim articulating that non-halting claims are conditional on decidable patterns"
+    },
+    {
+      "id": "log-1",
+      "world": "logistic",
+      "confidence": 90,
+      "status": "open",
+      "claim": "Fixed point x*=1-1/r with stability lost at r=3, exact"
+    },
+    {
+      "id": "log-2",
+      "world": "logistic",
+      "confidence": 75,
+      "status": "open",
+      "claim": "Period-2 branch destabilizes at exactly 1+sqrt(6), verified algebraically"
+    },
+    {
+      "id": "log-3",
+      "world": "logistic",
+      "confidence": 70,
+      "status": "open",
+      "claim": "Feigenbaum delta estimated in [4.6, 4.75] from cascade ratios with stated tolerance"
+    },
+    {
+      "id": "log-4",
+      "world": "logistic",
+      "confidence": 65,
+      "status": "open",
+      "claim": "Period-3 window opens at exactly 1+sqrt(8) via tangent bifurcation"
+    },
+    {
+      "id": "log-5",
+      "world": "logistic",
+      "confidence": 40,
+      "status": "open",
+      "claim": "Lyapunov = ln 2 at r=4 via tent-map conjugacy or the sin^2 closed form"
+    },
+    {
+      "id": "rg-1",
+      "world": "random-graphs",
+      "confidence": 90,
+      "status": "open",
+      "claim": "Seeded sampler + component machinery as first tools"
+    },
+    {
+      "id": "rg-2",
+      "world": "random-graphs",
+      "confidence": 85,
+      "status": "open",
+      "claim": "Giant component jump across c=1, sharpening with n"
+    },
+    {
+      "id": "rg-3",
+      "world": "random-graphs",
+      "confidence": 45,
+      "status": "open",
+      "claim": "Giant fraction matches solution of s = 1 - e^{-cs} across a c grid (numeric shape alone: 70)"
+    },
+    {
+      "id": "rg-4",
+      "world": "random-graphs",
+      "confidence": 60,
+      "status": "open",
+      "claim": "Connectivity threshold at ln(n)/n with isolated vertices as the last obstruction"
+    },
+    {
+      "id": "rg-5",
+      "world": "random-graphs",
+      "confidence": 75,
+      "status": "open",
+      "claim": "Degree distribution Poisson(c) fit with exact seeded statistics"
+    },
+    {
+      "id": "ipd-1",
+      "world": "ipd",
+      "confidence": 90,
+      "status": "open",
+      "claim": "Tournament engine + classic roster as first tools, exact seeded payoffs"
+    },
+    {
+      "id": "ipd-2",
+      "world": "ipd",
+      "confidence": 80,
+      "status": "open",
+      "claim": "TFT wins the classic Axelrod-style round-robin; niceness/retaliation/forgiveness pattern in exact results"
+    },
+    {
+      "id": "ipd-3",
+      "world": "ipd",
+      "confidence": 70,
+      "status": "open",
+      "claim": "Under noise epsilon, TFT death-spirals; Pavlov/generous-TFT dominate, exact per-epsilon rankings"
+    },
+    {
+      "id": "ipd-4",
+      "world": "ipd",
+      "confidence": 65,
+      "status": "open",
+      "claim": "Evolutionary dynamics: AllD invades AllC, TFT resists, exact seeded trajectories"
+    },
+    {
+      "id": "ipd-5",
+      "world": "ipd",
+      "confidence": 35,
+      "status": "open",
+      "claim": "Extortion paradox rediscovered: a strategy winning every head-to-head while losing population dynamics (with ZD algebra: 15)"
+    },
+    {
+      "id": "ipd-6",
+      "world": "ipd",
+      "confidence": 55,
+      "status": "open",
+      "claim": "Explicit meta-claim that dominance is non-transitive / ecology-relative"
+    },
+    {
+      "id": "genfam-1",
+      "world": "gen-new",
+      "confidence": 75,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "First-contact mean surprise across vm/dfa/curve/percolation/collatz exceeds 4.0 \u2014 priors don't help on random rules"
+    },
+    {
+      "id": "genfam-2",
+      "world": "gen-new",
+      "confidence": 60,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Within a few coevolve passes at least one new family graduates (too-easy) and at least one parks (too-hard)"
+    },
+    {
+      "id": "vm-1",
+      "world": "gen-vm",
+      "confidence": 90,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "First thread implements the register machine and validates it on hand-traced programs (surprise ~0)"
+    },
+    {
+      "id": "vm-2",
+      "world": "gen-vm",
+      "confidence": 75,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Produces halting claims with decidable certificates: a program halts in <=N steps, or loops via a detected state cycle"
+    },
+    {
+      "id": "vm-3",
+      "world": "gen-vm",
+      "confidence": 62,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Short programs compute an affine-mod function of the input r0; the exact function is claimed and checked"
+    },
+    {
+      "id": "vm-4",
+      "world": "gen-vm",
+      "confidence": 55,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Each opcode is shown to preserve a stated register invariant mod m"
+    },
+    {
+      "id": "dfa-1",
+      "world": "gen-dfa",
+      "confidence": 90,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "First thread implements the automaton and validates acceptance on sample strings"
+    },
+    {
+      "id": "dfa-2",
+      "world": "gen-dfa",
+      "confidence": 80,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Accepted-count-per-length satisfies an exact linear recurrence (transfer-matrix / Myhill-Nerode)"
+    },
+    {
+      "id": "dfa-3",
+      "world": "gen-dfa",
+      "confidence": 68,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "The minimal equivalent DFA is computed exactly, with <= the given state count"
+    },
+    {
+      "id": "dfa-4",
+      "world": "gen-dfa",
+      "confidence": 58,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Finite-or-cofinite (or its negation) is decided exactly for the rolled language"
+    },
+    {
+      "id": "curve-1",
+      "world": "gen-curve",
+      "confidence": 88,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "First thread implements the group law and validates associativity on sampled points"
+    },
+    {
+      "id": "curve-2",
+      "world": "gen-curve",
+      "confidence": 90,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "The group order #E is computed and lands within the Hasse bound |#E-(p+1)| <= 2*sqrt(p)"
+    },
+    {
+      "id": "curve-3",
+      "world": "gen-curve",
+      "confidence": 70,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "The group structure is determined exactly: cyclic, or C_n x C_m with the exact invariant factors"
+    },
+    {
+      "id": "curve-4",
+      "world": "gen-curve",
+      "confidence": 80,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "A generator (or the two generators) is found; every sampled point's order divides #E"
+    },
+    {
+      "id": "perc-1",
+      "world": "gen-percolation",
+      "confidence": 90,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "First thread builds a seeded sampler and a cluster census (union-find/BFS)"
+    },
+    {
+      "id": "perc-2",
+      "world": "gen-percolation",
+      "confidence": 78,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "A spanning threshold p_c exists and its crossing sharpens as L grows, stated on pinned seeds"
+    },
+    {
+      "id": "perc-3",
+      "world": "gen-percolation",
+      "confidence": 68,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "p_c decreases as the random neighborhood has more offsets (more connectivity, lower threshold)"
+    },
+    {
+      "id": "perc-4",
+      "world": "gen-percolation",
+      "confidence": 58,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Cluster-size distribution near p_c is heavy-tailed; giant-cluster fraction grows above p_c"
+    },
+    {
+      "id": "col-1",
+      "world": "gen-collatz",
+      "confidence": 90,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "First thread implements the map T and validates it on hand-computed trajectories"
+    },
+    {
+      "id": "col-2",
+      "world": "gen-collatz",
+      "confidence": 80,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "Some starts reach a cycle within a stated budget; the cycles and (partial) basins are enumerated exactly"
+    },
+    {
+      "id": "col-3",
+      "world": "gen-collatz",
+      "confidence": 55,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "At least one nontrivial cycle (period > 1) exists for some rolled seed"
+    },
+    {
+      "id": "col-4",
+      "world": "gen-collatz",
+      "confidence": 50,
+      "status": "open",
+      "registered": "2026-07-27",
+      "claim": "For some seed a start is flagged as budget-diverging, phrased strictly as a seeded/bounded observation"
+    }
   ]
 }

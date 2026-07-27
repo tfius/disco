@@ -307,6 +307,39 @@ unstated.
 
 ---
 
+## Generated families — pre-registered before first contact
+
+The eight documented worlds above get concrete per-claim predictions. The generated
+families are different: their rules are rolled at random, so per-seed specifics are
+unpredictable *by construction* — the register instead commits to (a) the discovery
+*shape* and (b) a few structural facts a competent discoverer should reach on almost
+any seed. Five families — **vm, dfa, curve, percolation, collatz** — had not yet been
+run when these were written on 2026-07-27, so this is a genuine pre-registration
+(machine-scoreable rows in `predictions.json`, ids `vm-*`, `dfa-*`, `curve-*`,
+`perc-*`, `col-*`, plus class-level `genfam-*`). The already-run families (ca via
+gen-42, modpoly, tag) are deliberately *not* re-registered here — that would be
+post-hoc; their observed results live in the roadmap.
+
+- **class-level**: first-contact mean surprise across the five exceeds 4.0 (priors
+  don't help on random rules) [75]; within a few coevolve passes at least one new
+  family graduates as too-easy and at least one parks as too-hard [60].
+- **vm** — machine implemented and hand-trace-validated [90]; halting claims carried
+  by decidable certificates (bounded halt, or a detected state cycle) [75]; short
+  programs shown to compute an affine-mod function of the input [62]; per-opcode
+  register invariants [55].
+- **dfa** — automaton implemented and validated [90]; accepted-count-per-length obeys
+  an exact linear recurrence [80]; minimal DFA computed, ≤ the given state count [68];
+  finite/cofinite decided for the rolled language [58].
+- **curve** — group law implemented, associativity validated [88]; #E computed inside
+  the Hasse bound `|#E−(p+1)| ≤ 2√p` [90]; group structure determined exactly (cyclic
+  or C_n×C_m) [70]; a generator found, point orders dividing #E [80].
+- **percolation** — seeded sampler + cluster census [90]; a spanning threshold p_c that
+  sharpens with L, on pinned seeds [78]; p_c falls as the neighborhood gains offsets
+  [68]; heavy-tailed cluster sizes near p_c [58].
+- **collatz** — map implemented and validated [90]; some starts reach cycles within a
+  stated budget, cycles/basins enumerated [80]; a nontrivial cycle exists for some seed
+  [55]; a budget-diverging start flagged, phrased strictly as a bounded observation [50].
+
 ## Reading this document later
 
 Three uses. (1) *Score the agent*: which predicted claims arrived, which arcs
