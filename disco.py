@@ -187,11 +187,143 @@ def _gen_tag(rng, seed, difficulty=0):
             f"only via decidable certificates. ")
 
 
+def _gen_vm(rng, seed, difficulty=0):
+    nreg = [3, 4, 4][min(difficulty, 2)]
+    m = [16, 256, 4096][min(difficulty, 2)]
+    nops = [6, 8, 10][min(difficulty, 2)]
+    def R():
+        return rng.randrange(nreg)
+    kinds = ["ADD", "ADDI", "MUL", "MULI", "XOR", "SET", "JZ", "JNZ", "HALT"]
+    lines = []
+    for op in range(nops):
+        k = "HALT" if op == 0 else ("JZ" if op == 1 else rng.choice(kinds))
+        if k == "ADD":
+            i, j = R(), R(); lines.append(f"op {op}: r{i} = (r{i} + r{j}) mod {m}")
+        elif k == "ADDI":
+            i, c = R(), rng.randrange(1, m); lines.append(f"op {op}: r{i} = (r{i} + {c}) mod {m}")
+        elif k == "MUL":
+            i, j = R(), R(); lines.append(f"op {op}: r{i} = (r{i} * r{j}) mod {m}")
+        elif k == "MULI":
+            i, c = R(), rng.randrange(2, m); lines.append(f"op {op}: r{i} = (r{i} * {c}) mod {m}")
+        elif k == "XOR":
+            i, j = R(), R(); lines.append(f"op {op}: r{i} = (r{i} XOR r{j}) mod {m}")
+        elif k == "SET":
+            i, c = R(), rng.randrange(m); lines.append(f"op {op}: r{i} = {c}")
+        elif k == "JZ":
+            i = R(); lines.append(f"op {op}: if r{i} == 0 then pc = arg else pc = pc + 1  (all others: pc = pc + 1)")
+        elif k == "JNZ":
+            i = R(); lines.append(f"op {op}: if r{i} != 0 then pc = arg else pc = pc + 1")
+        else:
+            lines.append(f"op {op}: HALT")
+    table = "\n".join(lines)
+    return (f"register VM, {nreg} regs mod {m}, {nops} opcodes",
+            f"Your world is a small register machine. State: {nreg} registers r0..r{nreg-1}, "
+            f"each an integer mod {m}, all starting at 0 except r0 which holds the INPUT. A "
+            f"program is a list of (op, arg) instructions; a program counter pc starts at 0; "
+            f"each step runs instruction program[pc] per the opcode table below; jump opcodes "
+            f"set pc, all others increment pc; execution halts on a HALT op, on pc out of "
+            f"range, or when a step budget you state is exhausted. Opcode table (arg is the "
+            f"instruction's immediate operand, used only by jumps):\n\n{table}\n\n"
+            f"Implement the machine once as a tool, validate it on hand-traced programs, then "
+            f"discover: which programs halt and which loop (decidably, with certificates), the "
+            f"function of the input r0 computed by short programs, register invariants each "
+            f"opcode preserves, and the reachable-state structure. ")
+
+
+def _gen_dfa(rng, seed, difficulty=0):
+    nq = [4, 6, 8][min(difficulty, 2)]
+    sigma = ["01", "01", "012"][min(difficulty, 2)]
+    delta = {q: {c: rng.randrange(nq) for c in sigma} for q in range(nq)}
+    accept = sorted(q for q in range(nq) if rng.random() < 0.4) or [rng.randrange(nq)]
+    rows = "\n".join(f"  state {q}: " + ", ".join(f"on '{c}' -> {delta[q][c]}" for c in sigma)
+                     for q in range(nq))
+    return (f"DFA, {nq} states, alphabet {{{','.join(sigma)}}}, accept {accept}",
+            f"Your world is a deterministic finite automaton over the alphabet "
+            f"{{{', '.join(sigma)}}}. States 0..{nq-1}, start state 0, accepting states "
+            f"{accept}. A string is accepted iff running it from the start state ends in an "
+            f"accepting state. Transition table:\n\n{rows}\n\n"
+            f"Implement the automaton once as a tool, then discover its language exactly: which "
+            f"strings and which lengths are accepted, the accepted-count per length and its "
+            f"recurrence, the minimal equivalent DFA (Myhill-Nerode classes), whether the "
+            f"language is finite/cofinite, and pumping structure. ")
+
+
+def _gen_curve(rng, seed, difficulty=0):
+    lo, hi = [(50, 500), (500, 5000), (5000, 60000)][min(difficulty, 2)]
+    p = rng.randrange(lo, hi) | 1
+    while not _is_prime(p):
+        p += 2
+    a, b = rng.randrange(p), rng.randrange(p)
+    while (4 * a ** 3 + 27 * b ** 2) % p == 0:
+        a, b = rng.randrange(p), rng.randrange(p)
+    return (f"E(F_{p}): y^2 = x^3 + {a}x + {b}",
+            f"Your world is the elliptic curve E: y^2 = x^3 + {a}*x + {b} over the finite "
+            f"field F_{p} (p = {p} is prime). A point is a pair (x, y) with x, y in "
+            f"0..{p-1} satisfying the equation mod {p}, plus one extra point O (the identity, "
+            f"'point at infinity'). Group law: O is identity; -(x, y) = (x, {p}-y); to add "
+            f"P=(x1,y1) and Q=(x2,y2): if P=-Q the sum is O; else the slope s = "
+            f"(y2-y1)/(x2-x1) mod {p} when P!=Q, or s = (3*x1^2 + {a})/(2*y1) mod {p} when "
+            f"P=Q (division is multiplication by modular inverse mod {p}); then "
+            f"x3 = s^2 - x1 - x2, y3 = s*(x1 - x3) - y1, all mod {p}. Implement the group "
+            f"once as a tool, validate associativity on samples, then discover exactly: the "
+            f"group order #E, its structure (cyclic or a product of two cyclic groups), the "
+            f"Hasse bound |#E - ({p}+1)| <= 2*sqrt({p}), the order of specific points, "
+            f"generators, and torsion. ")
+
+
+def _gen_percolation(rng, seed, difficulty=0):
+    R = [1, 1, 2][min(difficulty, 2)]
+    offs = [(dx, dy) for dx in range(-R, R + 1) for dy in range(-R, R + 1) if (dx, dy) != (0, 0)]
+    canon = {tuple(sorted((o, (-o[0], -o[1])))) for o in offs}
+    chosen = set()
+    for pair in canon:
+        if rng.random() < 0.55 or not chosen:
+            for o in pair:
+                chosen.add(o)
+    nb = sorted(chosen)
+    return (f"site percolation, random {len(nb)}-neighbor lattice, radius {R}",
+            f"Your world is site percolation on an L x L toroidal grid with a custom "
+            f"symmetric neighborhood: two occupied cells are connected iff their offset "
+            f"(dx, dy), each taken mod L into the range [-L/2, L/2], lies in this set:\n\n"
+            f"{nb}\n\n"
+            f"Each cell is independently occupied with probability p, using seeded stdlib "
+            f"random (state every seed and L in every claim). Occupied cells joined by the "
+            f"neighborhood form clusters. Discover: the percolation threshold p_c (the p at "
+            f"which a cluster first spans the torus, as L grows), the giant-cluster fraction "
+            f"above p_c, cluster-size distribution and its behavior near p_c, and finite-size "
+            f"scaling. Never claim from unseeded samples — every claim states its seeds, L, "
+            f"and p, as an interval or exact count that a check re-derives. ")
+
+
+def _gen_collatz(rng, seed, difficulty=0):
+    d = [2, 2, 3][min(difficulty, 2)]
+    hi = [7, 13, 25][min(difficulty, 2)]
+    mult = [rng.randrange(1, hi) for _ in range(d)]
+    add = [(-mult[r] * r) % d for r in range(d)]
+    rules = "\n".join(
+        f"  if x mod {d} == {r}: x -> ({mult[r]}*x + {add[r]}) / {d}" for r in range(d))
+    return (f"generalized Collatz mod {d}, multipliers {mult}",
+            f"Your world is a generalized Collatz map T on the positive integers, defined by "
+            f"the residue of x mod {d} (each branch's numerator is divisible by {d} by "
+            f"construction, so T(x) is always a positive integer):\n\n{rules}\n\n"
+            f"Iterate T from a starting value; a trajectory either reaches a cycle or grows "
+            f"without bound. Implement T once as a tool, then discover: which starting values "
+            f"reach a cycle within a stated step and magnitude budget, the cycles themselves "
+            f"and their basins, stopping-time statistics, and any residue/growth law. This is "
+            f"open-frontier territory: bound every search explicitly and phrase 'diverges' or "
+            f"'always halts' claims only as budgeted, seeded observations, never as proofs. ")
+
+
+FAMILIES = ["ca", "modpoly", "tag", "vm", "dfa", "curve", "percolation", "collatz"]
+_GEN = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag, "vm": _gen_vm,
+        "dfa": _gen_dfa, "curve": _gen_curve, "percolation": _gen_percolation,
+        "collatz": _gen_collatz}
+
+
 def _genworld_create(family, seed, must_create=True, difficulty=0) -> str:
     import random as _random
     rng = _random.Random(f"{family}-{seed}")
-    summary, body = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag}[family](
-        rng, seed, difficulty)
+    summary, body = _GEN[family](rng, seed, difficulty)
     name = f"gen-{seed}" if family == "ca" else f"gen-{family}-{seed}"
     config.set_world(name)
     if (config.WORLD_DIR / "world.md").exists():
@@ -261,7 +393,7 @@ def cmd_coevolve(args):
     state_file = config.ROOT / "coevolve.json"
     st = json.loads(state_file.read_text()) if state_file.exists() else \
         {"active": [], "retired": [], "next_seed": 1000, "difficulty": 0}
-    families = ["ca", "modpoly", "tag"]
+    families = FAMILIES
     try:
         while len(st["active"]) < args.pop:
             fam = families[st["next_seed"] % len(families)]
@@ -487,7 +619,7 @@ def main():
     ex.set_defaults(fn=cmd_export)
     gw = sub.add_parser("genworld", help="generate a contamination-free random world from a seed")
     gw.add_argument("seed", type=int, help="generation seed")
-    gw.add_argument("--family", choices=["ca", "modpoly", "tag"], default="ca",
+    gw.add_argument("--family", choices=FAMILIES, default="ca",
                     help="world family: 1D cellular automaton, polynomial map on Z_m, tag system")
     gw.add_argument("--difficulty", type=int, default=0, help="difficulty tier (0-2+)")
     gw.set_defaults(fn=cmd_genworld)
@@ -511,7 +643,7 @@ def main():
     dp.set_defaults(fn=cmd_deps)
     gr = sub.add_parser("grind", help="batch rollout: generate worlds and run sessions unattended")
     gr.add_argument("seeds", type=int, nargs="+", help="world seeds to grind")
-    gr.add_argument("--family", choices=["ca", "modpoly", "tag"], default="ca")
+    gr.add_argument("--family", choices=FAMILIES, default="ca")
     gr.add_argument("-n", type=int, default=3, help="threads per world")
     gr.set_defaults(fn=cmd_grind)
     args = p.parse_args()

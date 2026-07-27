@@ -48,6 +48,20 @@ skill, not the memory — and (c) honest surprise signal for process rewards.
   structure of the random modulus leaks in and is discoverable.
 - **tag** (random tag systems): busybeaver-flavored — halting vs growth vs
   periodicity, with the same certificate discipline needed for "never halts".
+- **vm** (random register machines): reverse-engineer an artificial computer —
+  halting sets, the function short programs compute, per-opcode invariants,
+  reachable-state structure. The apex of the computation flavor.
+- **dfa** (random finite automata): formal-language theory — the accepted
+  language, accepted-count-per-length recurrences, minimal DFA (Myhill-Nerode),
+  finite/cofinite classification, pumping structure.
+- **curve** (elliptic curves E(F_p), random p/a/b): finite-group structure —
+  order, Hasse bound, cyclic-vs-product decomposition, point orders, torsion.
+- **percolation** (random-neighborhood site percolation): spatial criticality —
+  the threshold p_c, giant-cluster fraction, cluster-size laws, finite-size
+  scaling; the seeded-claim discipline is mandatory.
+- **collatz** (generalized affine-residue maps): open-frontier integer dynamics —
+  which starts reach cycles under a budget, cycles and basins, stopping-time
+  statistics; 'diverges'/'always halts' only as budgeted, seeded observations.
 
 ## Signature metrics (why this class is the eval)
 
