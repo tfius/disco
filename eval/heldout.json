@@ -1,0 +1,13 @@
+{
+  "note": "Sealed held-out evaluation set. NEVER train, grind, coevolve, or rollout on these (family, seed, difficulty). The reserved seed band 7000000+ is for eval only. A model's discovery is scored on first contact with these worlds; because they are generated from random seeds, their truths exist in no pretraining corpus, so transfer here measures learned discovering rather than recall.",
+  "worlds": [
+    {"family": "ca",          "seed": 7000001, "difficulty": 0},
+    {"family": "vm",          "seed": 7000002, "difficulty": 0},
+    {"family": "dfa",         "seed": 7000003, "difficulty": 0},
+    {"family": "curve",       "seed": 7000004, "difficulty": 0},
+    {"family": "percolation", "seed": 7000005, "difficulty": 0},
+    {"family": "collatz",     "seed": 7000006, "difficulty": 0},
+    {"family": "modpoly",     "seed": 7000007, "difficulty": 1},
+    {"family": "tag",         "seed": 7000008, "difficulty": 1}
+  ]
+}

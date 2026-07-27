@@ -343,6 +343,82 @@ def cmd_genworld(args):
     print(f"run: python3 disco.py -w {name} run -n 3")
 
 
+def _eval_worlds(specs, n, base_dir, on_event=print):
+    """Score the current model's discovery on held-out generated worlds. Each world
+    is generated into an isolated temp dir, run for n threads with NO evolved
+    methodology (raw policy) and NO persistence, then its metrics are collected and
+    the dir discarded. Nothing touches worlds/ — these stay genuinely held out."""
+    import random as _random
+    import shutil
+    from kernel import stats
+    saved_name, saved_dir = config.WORLD, config.WORLD_DIR
+    shutil.rmtree(base_dir, ignore_errors=True)
+    rows = []
+    try:
+        for spec in specs:
+            fam, seed, diff = spec["family"], spec["seed"], spec.get("difficulty", 0)
+            name = f"eval-{fam}-{seed}"
+            summary, body = _GEN[fam](_random.Random(f"{fam}-{seed}"), seed, diff)
+            wdir = base_dir / name
+            config.point_at(wdir, name)
+            config.ensure_dirs()
+            (wdir / "world.md").write_text(body + GEN_CLOSING.format(seed=seed))
+            on_event(f"=== eval {name} — {summary}")
+            for i in range(n):
+                oc = loop.run_thread(methodology="")  # raw policy, no methodology
+                on_event(f"  thread {i + 1}/{n}: {oc['ending']} ({oc['steps']} steps)")
+            s = stats.compute() or {}
+            s["world"], s["family"] = name, fam
+            rows.append(s)
+    finally:
+        config.point_at(saved_dir, saved_name)
+
+    threads = sum(r.get("threads", 0) for r in rows)
+    admitted = sum(r.get("admitted", 0) for r in rows)
+    def _avg(key):
+        vals = [r[key] for r in rows if r.get(key) is not None]
+        return round(sum(vals) / len(vals), 2) if vals else None
+    agg = {
+        "worlds": len(rows), "threads": threads, "verified_claims": admitted,
+        "claims_per_thread": round(admitted / threads, 3) if threads else 0.0,
+        "mean_first_contact_surprise": _avg("first_contact_surprise"),
+        "mean_closure": _avg("mean_closure"),
+        "mean_surprise": _avg("mean_surprise"),
+    }
+    return {"rows": rows, "aggregate": agg}
+
+
+def cmd_eval(args):
+    """The measurement instrument: score a model's discovery on the sealed held-out
+    world set. High closure and claims-per-thread on worlds no corpus describes =
+    learned discovering, not recall. Establishes the before/after number for training."""
+    import time
+    manifest = json.loads((config.ROOT / "eval" / "heldout.json").read_text())
+    specs = manifest["worlds"]
+    if args.family:
+        specs = [s for s in specs if s["family"] == args.family]
+    tag = args.model_tag or (config.CLAUDE_MODEL or "claude"
+                             if config.BACKEND == "claude" else config.MODEL)
+    print(f"eval: {len(specs)} held-out worlds x {args.n} threads — model '{tag}'")
+    res = _eval_worlds(specs, args.n, config.ROOT / "eval" / "runs")
+    print("\n=== held-out discovery scorecard ===")
+    for r in res["rows"]:
+        print(f"  {r.get('world',''):24s} claims {r.get('admitted',0)}/{r.get('threads',0)}"
+              f"  first-contact surprise {r.get('first_contact_surprise')}"
+              f"  closure {r.get('mean_closure')}")
+    agg = res["aggregate"]
+    print(f"\naggregate: claims/thread {agg['claims_per_thread']}, "
+          f"first-contact surprise {agg['mean_first_contact_surprise']}, "
+          f"closure {agg['mean_closure']} over {agg['worlds']} worlds")
+    out = config.ROOT / "exports"
+    out.mkdir(exist_ok=True)
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    path = out / f"eval-{tag.replace('/', '_').replace('@', '_')}-{ts}.json"
+    path.write_text(json.dumps({"model": tag, "backend": config.BACKEND, "ts": ts,
+                                "threads_per_world": args.n, **res}, indent=2))
+    print(f"scorecard -> {path}")
+
+
 def cmd_calib(args):
     """Cross-world calibration: stated confidence vs judged surprise. High
     confidence should mean low surprise; r is the anti-correlation to watch."""
@@ -631,6 +707,11 @@ def main():
     cv.add_argument("--judge-after", type=int, default=6,
                     help="threads before a world can graduate or park")
     cv.set_defaults(fn=cmd_coevolve)
+    el = sub.add_parser("eval", help="score a model's discovery on the sealed held-out world set")
+    el.add_argument("-n", type=int, default=3, help="threads per held-out world")
+    el.add_argument("--family", default=None, help="restrict to one family")
+    el.add_argument("--model-tag", default=None, help="label for the scorecard record")
+    el.set_defaults(fn=cmd_eval)
     ro = sub.add_parser("rollout", help="GRPO group sampling: G threads from one frozen context")
     ro.add_argument("--group", "-g", type=int, default=4, help="rollouts per group")
     ro.add_argument("--question", default=None, help="pin a single question for the whole group")

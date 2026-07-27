@@ -151,6 +151,7 @@ python3 disco.py run -n 8 --agents alice,bob   # multi-agent: shared archive, ow
 python3 disco.py calib        # cross-world calibration: confidence vs surprise
 python3 disco.py coevolve     # POET loop: world population at the competence frontier
 python3 disco.py rollout -g 8 # GRPO group sampling from one frozen context
+python3 disco.py eval         # score discovery on the sealed held-out world set
 ```
 
 `seed` is the human steering channel: it parks a question in the world's `archive/open-questions/`,

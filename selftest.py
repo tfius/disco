@@ -353,6 +353,23 @@ def scenario_laws():
     print("laws scenario OK — instances folded into the law, archive compressed 3->1")
 
 
+def scenario_eval():
+    import sys as _s; _s.argv = ["disco"]
+    import disco
+    tmp = _patch_config()
+    responses = iter(GATE_SCRIPT)          # one full 2-step admitted-claim thread
+    llm.chat = lambda *a, **k: next(responses)
+    res = disco._eval_worlds([{"family": "ca", "seed": 1, "difficulty": 0}], 1,
+                             tmp / "evalruns", on_event=lambda m: None)
+    agg = res["aggregate"]
+    assert agg["worlds"] == 1 and agg["threads"] == 1, agg
+    assert agg["verified_claims"] == 1, agg
+    assert agg["mean_first_contact_surprise"] is not None, agg
+    assert not (config.WORLDS / "eval-ca-1").exists(), "eval must not persist to worlds/"
+    assert config.WORLD == "selftest-restored" or config.WORLD_DIR == tmp, "config must be restored"
+    print("eval scenario OK — held-out world scored in isolation, nothing persisted")
+
+
 def scenario_slug_collision():
     _patch_config()
     config.ensure_dirs()
@@ -374,4 +391,5 @@ if __name__ == "__main__":
     scenario_cascade()
     scenario_slug_collision()
     scenario_laws()
+    scenario_eval()
     scenario_loss_mask()
