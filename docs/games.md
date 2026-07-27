@@ -14,7 +14,7 @@ the game-theoretic reading buys, and marks the holes it exposes.
 | 3 | Agent vs kernel | Mechanism design / principal–agent | frozen rules + fitness | per thread |
 | 4 | Methodology | Evolutionary game (replicator, ESS) | `evolve.py` | per generation |
 | 5 | Knowledge maintenance | Repeated falsification game | `verify` + cull | per session |
-| 6 | Multi-agent science | Congestion + signaling | unbuilt (roadmap) | per community |
+| 6 | Multi-agent science | Congestion + signaling | `run --agents`, per-agent lineages | per community |
 
 ## 1. Claim admission is a verifier/falsifier game
 
@@ -37,6 +37,12 @@ declared-winning strategy).
 
 `verify` is the same game replayed: reality gets a fresh move against every
 archived claim, every session. A cull is Falsifier finally winning.
+
+`PREDICT_CODE` makes the Verifier move *executable and pre-committed*: the agent
+ships assertions the kernel runs against the actual result, and their verdict
+bounds the surprise score (held caps it, violated floors it). The subjective
+judge is demoted to grading nuance inside a band that execution already fixed —
+the falsifier game, moved before the outcome and anchored in code.
 
 **What the frame buys:** a precise grammar for admissible claims per world.
 Every "harness strain" section in the world programs — limit claims in
@@ -135,7 +141,7 @@ maintenance: cheap to state, robust to transient noise, and it makes the
 archive's long-run composition an equilibrium outcome — only claims whose
 verification games reality keeps losing survive.
 
-## 6. Multi-agent science: the unbuilt layer
+## 6. Multi-agent science: the built layer
 
 With one agent, question selection is a bandit; with several sharing an
 archive it becomes strategic:
@@ -151,11 +157,18 @@ archive it becomes strategic:
   fast-cheap claims — the same distortion human science exhibits, reproducible
   and measurable here.
 
-Minimal honest design (roadmap, not yet kernel): agent identities on threads;
-per-agent methodology lineages evolving independently against shared fitness;
-one shared archive; ledger attribution. Success metric: measured question-
-overlap falling below a random-assignment baseline — division of labor
-emerging from payoffs, not from a coordinator.
+The design shipped: agent identities on threads (`run --agents alice,bob`),
+per-agent methodology lineages evolving independently against shared fitness,
+one shared archive, ledger attribution. **First result:** in an 8-thread
+two-agent session the measured focus-overlap was 0.246 — well below the ~0.5
+random-assignment line, so division of cognitive labor *emerged from the
+payoffs*, with no coordinator (one agent taking ash statistics and strip-image
+instruments, the other image-count scaling and runtime laws). The congestion
+game's efficient equilibrium showed up on first contact. Still unmeasured: the
+signaling equilibrium (do agents free-ride on each other's surprise gradients?)
+and the priority race (does first-to-archive attribution distort toward
+fast-cheap claims?) — both now observable, since every ledger entry carries its
+agent.
 
 ## 7. The RL reading
 
@@ -178,6 +191,15 @@ refused on a failed check. The reward landscape of a generated world is
 observably different from a documented one — which is precisely what makes the
 held-out-world eval meaningful.
 
+Empirical postscript on the reward game: group sampling (`disco rollout`) makes
+the layer-3 reward's shape visible. On a strong policy the *outcome* reward
+saturates — every rollout in a group lands some admitted claim, so std → 0 and
+the group carries no gradient. But the *process* signal (surprise closure) spans
+the whole range within one frozen context (−8 to +9 observed). The mechanism's
+anti-hacking property survives, but for a competent player the usable gradient
+has moved from the outcome to the process term — which is why groups are sampled
+at the `coevolve` frontier, where difficulty keeps the outcome game live.
+
 ## What the frame buys, in one list
 
 1. A **claim grammar** per world (which verification games terminate) — derived,
@@ -190,4 +212,5 @@ held-out-world eval meaningful.
 4. **Impossibility honesty**: Π₁ claims cannot be admitted, only certified;
    no mechanism detects check-collusion from inside; nature cannot be out-played,
    only out-asked.
-5. A **research program** for layer 6 with a falsifiable success metric.
+5. A **built experiment** for layer 6 (multi-agent) with a falsifiable success
+   metric — division of labor emerged (overlap 0.246 < 0.5 baseline).
