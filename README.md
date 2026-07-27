@@ -323,16 +323,21 @@ a ready fine-tuning target; filter it at two granularities:
 import json
 episodes = [json.loads(l) for l in open("exports/gen-1002.jsonl")]
 
-# trajectory-level: keep threads whose discovery passed its check AND survived
-# reality's later re-checks; require closed_surprise for the strongest set
+# trajectory-level filter (the coarse gate): keep threads whose discovery passed
+# its check AND survived reality's later re-checks; require closed_surprise for
+# the strongest set. Each kept episode's `transcript` — the exact system +
+# user/assistant message list the model produced — is the ready SFT target.
 keep = [e for e in episodes
         if e["filters"]["gate_passed"] and e["filters"]["verified_alive"]
         and e["filters"]["closed_surprise"]]
 
-# turn-level: drop the steps where the agent's OWN committed assertions failed
+# turn-level signal: each step carries objective ("held"/"violated"/None) and
+# surprise, so rather than cloning every turn equally you MASK the loss on the
+# experiment turns that made a losing bet — keeping the trajectory coherent
+# instead of deleting mid-conversation turns. Steps run in transcript order.
 for e in keep:
-    e["steps"] = [s for s in e["steps"] if s.get("objective") != "violated"]
-    # → SFT on e["transcript"], or prompt = system+prior turns, completion = assistant turn
+    losing = [s["n"] for s in e["steps"] if s.get("objective") == "violated"]
+    # → fine-tune on e["transcript"], masking the assistant turns for steps in `losing`
 ```
 
 **GRPO — group-relative advantages (rollout exports only).** `disco rollout`
