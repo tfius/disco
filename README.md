@@ -291,7 +291,8 @@ flowchart LR
 ```
 
 One episode (one thread) looks like this — every field is emitted by
-`disco export`, nothing is inferred later:
+`disco export` (the trailing `group`/`rollout` pair only on `rollout` exports),
+nothing is inferred later:
 
 ```json
 {
@@ -309,7 +310,8 @@ One episode (one thread) looks like this — every field is emitted by
   ],
   "claim": "For rule ... every cyclic tape of width W ...",
   "check": "import sys; ...\nsys.exit(0 if ... else 1)",
-  "transcript": [{"role": "system", "content": "..."}, {"role": "assistant", "content": "..."}]
+  "transcript": [{"role": "system", "content": "..."}, {"role": "assistant", "content": "..."}],
+  "group": "395ad9b5a94c", "rollout": 3
 }
 ```
 
