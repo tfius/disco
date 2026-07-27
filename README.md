@@ -104,13 +104,14 @@ flowchart TB
     HU -->|"seed questions"| OQ
 
     subgraph FAST["fast loop — one discovery thread"]
-        AG["agent"] -->|"1: commit prediction"| WX["world: Python execution — the only oracle"]
-        WX -->|"2: result"| JU["judge: fresh context, surprise 0-10"]
+        AG["agent"] -->|"1: commit prediction (+ optional assertions)"| WX["world: Python execution — the only oracle"]
+        WX -->|"2: result — committed assertions bound the score"| JU["judge: fresh context, surprise 0-10"]
         JU -->|"3: dig while surprise shrinks"| AG
     end
 
     AG -->|"4: claim + check, min 2 experiments"| GA{"gate"}
     GA -->|"check exits 0"| CL["archive: claims"]
+    CL -->|"a law subsumes its instances: archive compresses"| CL
     GA -->|"refused / unreplicated"| OQ["archive: open questions"]
     AG -->|"bank tool"| TO["archive: tools"]
     TO -->|"importable in every experiment"| WX
@@ -299,6 +300,19 @@ reward-labeled trajectories → your trainer consumes the JSONL. See
 [docs/roadmap.md](docs/roadmap.md) for the recipe mapping.
 
 ### How to train on them
+
+The core loop above discovers; wrapped in generated worlds it becomes a
+self-supplying training environment — the outer loop:
+
+```mermaid
+flowchart LR
+    CO["coevolve — worlds held at the<br/>competence frontier"] --> RUN["run / grind / rollout<br/>(discovery sessions)"]
+    RUN --> EX["export — episodes JSONL<br/>(gate+verify labels, process rewards, group ids)"]
+    EX --> TR["your trainer<br/>(SFT / GRPO)"]
+    TR -->|"improved policy"| RUN
+    CO -.->|"held-out seeds"| EVAL["eval: first-contact<br/>surprise closure"]
+    TR -.-> EVAL
+```
 
 One episode (one thread) looks like this — every field is emitted by
 `disco export`, nothing is inferred later:
