@@ -258,6 +258,8 @@ worlds/<name>/ledger.jsonl      append-only, kernel-written
 
 ## Trajectories: discovery as training data
 
+**disco natively produces every ingredient a modern compact-agent SFT+RL pipeline wants.**
+
 Every thread disco runs is a fully explained trajectory, and `disco export`
 turns them into training episodes (JSONL, one per thread):
 
