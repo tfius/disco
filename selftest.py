@@ -314,6 +314,26 @@ def scenario_cascade():
     print("cascade scenario OK — tool break rots then culls its dependent claim")
 
 
+def scenario_loss_mask():
+    from kernel import export
+    tmp = _patch_config()
+    responses = iter(GATE_SCRIPT)   # step 1 commits an assertion that is VIOLATED
+    llm.chat = lambda *a, **k: next(responses)
+    loop.run_thread(thread_id="mask-test", on_event=lambda m: None)
+    path, n = export.episodes()
+    ep = [json.loads(l) for l in open(path)][0]
+    tr, mask = ep["transcript"], ep["loss_mask"]
+    assert len(mask) == len(tr), (len(mask), len(tr))
+    # system/user turns never trained; at least one assistant turn is
+    assert not any(mask[i] for i, m in enumerate(tr) if m["role"] != "assistant")
+    assert any(mask), "some assistant turn must be trainable"
+    # the violated experiment turn (step 1, objective=violated) must be masked off
+    s1 = [s for s in ep["steps"] if s["n"] == 1][0]
+    assert s1.get("objective") == "violated" and "turn" in s1, s1
+    assert mask[s1["turn"]] is False, "losing-bet turn must be masked out"
+    print("loss-mask scenario OK — mask aligns to transcript, losing turn masked")
+
+
 def scenario_laws():
     _patch_config()
     config.ensure_dirs()
@@ -354,3 +374,4 @@ if __name__ == "__main__":
     scenario_cascade()
     scenario_slug_collision()
     scenario_laws()
+    scenario_loss_mask()

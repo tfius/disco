@@ -260,6 +260,10 @@ turns them into training episodes (JSONL, one per thread):
   for group-relative advantage computation (GRPO-style). Group-relative
   normalization cancels per-world difficulty; saturated worlds yield std=0
   groups, which is why groups are sampled at the coevolve frontier.
+- **transcript & loss_mask** — the exact message sequence the model emitted plus
+  a bool list aligned 1:1 to it, True on assistant turns worth cloning and False
+  on system/user turns and losing-bet experiment turns: a turnkey SFT target,
+  no turn-alignment guesswork (each step also carries its `turn` index).
 
 What makes these episodes unusual as data: web text contains humanity's
 conclusions, while these trajectories contain the *revision process* — belief,
@@ -303,7 +307,7 @@ nothing is inferred later:
   "calibration": [[35, 5], [80, 1]],
   "steps": [
     {"n": 1, "focus": "cycle structure", "prediction": "...", "confidence": 35,
-     "code": "from ca_rule import step\n...", "objective": "held",
+     "code": "from ca_rule import step\n...", "objective": "held", "turn": 2,
      "result": {"exit": 0, "stdout": "...", "stderr": "", "timeout": false},
      "surprise": 5, "process_reward": null, "judge_note": "..."},
     {"n": 2, "...": "...", "surprise": 1, "process_reward": 4}
@@ -311,6 +315,7 @@ nothing is inferred later:
   "claim": "For rule ... every cyclic tape of width W ...",
   "check": "import sys; ...\nsys.exit(0 if ... else 1)",
   "transcript": [{"role": "system", "content": "..."}, {"role": "assistant", "content": "..."}],
+  "loss_mask": [false, true],
   "group": "395ad9b5a94c", "rollout": 3
 }
 ```
@@ -331,13 +336,14 @@ keep = [e for e in episodes
         if e["filters"]["gate_passed"] and e["filters"]["verified_alive"]
         and e["filters"]["closed_surprise"]]
 
-# turn-level signal: each step carries objective ("held"/"violated"/None) and
-# surprise, so rather than cloning every turn equally you MASK the loss on the
-# experiment turns that made a losing bet — keeping the trajectory coherent
-# instead of deleting mid-conversation turns. Steps run in transcript order.
+# turn-level masking is turnkey: every episode ships `loss_mask`, a bool list
+# aligned 1:1 to `transcript` — True on assistant turns worth cloning, False on
+# system/user turns and on experiment turns whose committed assertions were
+# violated (a losing bet). Feed the pair straight to an SFT trainer:
 for e in keep:
-    losing = [s["n"] for s in e["steps"] if s.get("objective") == "violated"]
-    # → fine-tune on e["transcript"], masking the assistant turns for steps in `losing`
+    messages, mask = e["transcript"], e["loss_mask"]
+    # compute loss only where mask[i] is True  (each step's turn index + objective
+    # are in e["steps"] if you want a different policy)
 ```
 
 **GRPO — group-relative advantages (rollout exports only).** `disco rollout`

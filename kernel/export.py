@@ -53,7 +53,7 @@ def episodes(out_path=None):
                 if rf.exists():
                     step["result"] = json.loads(rf.read_text())
                 led = step_map.get((thread, i), {})
-                for key in ("surprise", "judge_note", "confidence", "focus", "objective"):
+                for key in ("surprise", "judge_note", "confidence", "focus", "objective", "turn"):
                     if key in led:
                         step[key] = led[key]
                 steps.append(step)
@@ -104,7 +104,18 @@ def episodes(out_path=None):
                     episode["check"] = (cd / "check.py").read_text()
             tf = thread_dir / "messages.jsonl"
             if tf.exists():
-                episode["transcript"] = [json.loads(l) for l in tf.read_text().splitlines()]
+                transcript = [json.loads(l) for l in tf.read_text().splitlines()]
+                episode["transcript"] = transcript
+                # turnkey loss mask, aligned 1:1 to transcript: train on every
+                # assistant turn EXCEPT experiment turns whose committed assertions
+                # were violated (a losing bet); system/user turns are never targets.
+                # Default policy — a trainer can recompute from steps[].turn/objective.
+                losing_turns = {s["turn"] for s in steps
+                                if s.get("objective") == "violated" and "turn" in s}
+                episode["loss_mask"] = [
+                    m["role"] == "assistant" and i not in losing_turns
+                    for i, m in enumerate(transcript)
+                ]
             out.write(json.dumps(episode) + "\n")
             count += 1
     return out_path, count

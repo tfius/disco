@@ -192,6 +192,10 @@ def _run_steps(thread_id, thread_dir, messages, trajectory, focus, outcome, on_e
 
         focus = parsed.get("focus") or focus
         step_dir = thread_dir / f"step-{step}"
+        # the assistant turn carrying the code that actually runs is the most
+        # recent one (repair/bounce append their corrected turn last) — record its
+        # transcript index so exports can align loss masks to turns, no guessing
+        exp_turn = max(i for i, m in enumerate(messages) if m["role"] == "assistant")
         result = world.run_python(code, step_dir)
 
         # objective surprise: committed assertions run against the actual result;
@@ -219,7 +223,7 @@ def _run_steps(thread_id, thread_dir, messages, trajectory, focus, outcome, on_e
         ledger.log("step", thread=thread_id, step=step, focus=focus,
                    confidence=parsed["confidence"], surprise=verdict["surprise"],
                    judge_note=verdict["note"], exit=result["exit"], timeout=result["timeout"],
-                   **({"objective": objective} if objective else {}))
+                   turn=exp_turn, **({"objective": objective} if objective else {}))
         obj_note = f" [assertions {objective}]" if objective else ""
         on_event(f"  step {step}: surprise {verdict['surprise']}/10{obj_note} — {verdict['note']}")
 
