@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>disco — a discovery engine</title>
+<meta name="description" content="An LLM agent that invents its own questions, predicts before it runs, and keeps only machine-verified, reality-culled claims. Discovery as a training environment.">
+<style>
+  :root{
+    --bg:#0b0e14; --surface:#12161f; --surface2:#171c27; --line:#232a37;
+    --text:#e6edf3; --muted:#9aa4b2; --faint:#6b7482;
+    --accent:#34d399; --accent-dim:#1c6b52; --amber:#fbbf24;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#ffffff; --surface:#f6f8fa; --surface2:#eef1f5; --line:#d8dee4;
+      --text:#1f2328; --muted:#57606a; --faint:#8b949e;
+      --accent:#0f9d63; --accent-dim:#b7ebd4; --amber:#b45309;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+    line-height:1.65;font-size:17px;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+  code,kbd{font-family:var(--mono);font-size:.9em}
+  h1,h2,h3{line-height:1.25;letter-spacing:-.01em}
+  h2{font-size:1.55rem;margin:0 0 .2em}
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  .eyebrow{font-family:var(--mono);font-size:.78rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  .lead{color:var(--muted);font-size:1.08rem}
+
+  /* hero */
+  .hero{padding:88px 0 64px;border:0;text-align:center}
+  .logo{font-family:var(--mono);font-weight:700;font-size:clamp(3rem,12vw,5.5rem);
+    letter-spacing:-.04em;margin:0;line-height:1;
+    background:linear-gradient(120deg,var(--accent),var(--amber));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{font-size:clamp(1.1rem,3.2vw,1.5rem);margin:.4em 0 .2em;font-weight:600}
+  .sub{color:var(--muted);max-width:620px;margin:.6em auto 0}
+  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:32px}
+  .btn{display:inline-block;padding:11px 20px;border-radius:9px;font-weight:600;
+    font-size:.95rem;border:1px solid var(--line)}
+  .btn.primary{background:var(--accent);color:#04150e;border-color:var(--accent)}
+  .btn.primary:hover{text-decoration:none;filter:brightness(1.08)}
+  .btn.ghost{background:var(--surface);color:var(--text)}
+  .btn.ghost:hover{text-decoration:none;border-color:var(--accent)}
+
+  /* the loop */
+  .loop{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;
+    margin:28px 0 8px;font-family:var(--mono);font-size:.82rem}
+  .stage{flex:1 1 120px;background:var(--surface);border:1px solid var(--line);
+    border-radius:10px;padding:14px 12px;text-align:center;position:relative}
+  .stage b{display:block;color:var(--accent);font-size:.9rem;margin-bottom:3px}
+  .stage span{color:var(--muted);font-size:.76rem;line-height:1.4;display:block}
+  .arrow{align-self:center;color:var(--faint);padding:0 8px;font-size:1.1rem}
+  .loopback{color:var(--faint);font-family:var(--mono);font-size:.8rem;
+    text-align:center;margin-top:10px}
+  .loopback b{color:var(--amber)}
+
+  /* rule cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:24px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .card h3{margin:0 0 6px;font-size:1rem;display:flex;align-items:center;gap:8px}
+  .card p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.5}
+  .card .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+
+  /* discoveries */
+  .find{border-left:2px solid var(--accent-dim);padding:4px 0 4px 20px;margin:20px 0}
+  .find h3{margin:0 0 4px;font-size:1.05rem}
+  .find p{margin:0;color:var(--muted);font-size:.95rem}
+  .find .world{font-family:var(--mono);font-size:.72rem;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.1em}
+
+  /* pipeline */
+  .pipe{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:24px 0;
+    font-family:var(--mono);font-size:.8rem}
+  .pnode{background:var(--surface2);border:1px solid var(--line);border-radius:9px;
+    padding:10px 14px;flex:1 1 auto;text-align:center;color:var(--text)}
+  .pnode small{display:block;color:var(--faint);font-size:.7rem;margin-top:2px}
+
+  pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:.86rem;
+    line-height:1.55;margin:20px 0}
+  pre .c{color:var(--faint)}
+  pre .k{color:var(--accent)}
+  .note{color:var(--faint);font-size:.86rem}
+
+  footer{border-top:1px solid var(--line);padding:40px 0 60px;color:var(--muted);font-size:.9rem}
+  footer a{color:var(--muted)}
+  .foot-links{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px}
+  .foot-links a{font-family:var(--mono);font-size:.85rem}
+  .kbd{font-family:var(--mono);background:var(--surface2);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;font-size:.82em;color:var(--text)}
+</style>
+</head>
+<body>
+
+<header class="hero wrap">
+  <h1 class="logo">disco</h1>
+  <p class="tag">A discovery engine, not a knowledge base.</p>
+  <p class="sub">An LLM agent invents its own questions, commits a prediction before it runs
+    the experiment, and keeps a fact only when a runnable check confirms it — and keeps
+    keeping it only while reality still does. Nothing is taught. Everything is earned.</p>
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/tfius/disco">View on GitHub</a>
+    <a class="btn ghost" href="#discovered">What it's discovered</a>
+    <a class="btn ghost" href="#train">Discovery as training data</a>
+  </div>
+</header>
+
+<section class="wrap" id="idea">
+  <p class="eyebrow">the one house rule</p>
+  <h2>A curious kid, locked in a room</h2>
+  <p class="lead">Imagine a kid alone with a computer — no books, no teacher. They poke at
+    things, under one rule: <strong>before every poke, write down what you think will
+    happen.</strong> When the computer does something else, that's the fun part — poke
+    <em>there</em> again until it makes sense. A thing goes up on the wall only with a test
+    anyone can re-run to prove it, and only after checking twice. Useful gadgets go in a
+    toolbox for tomorrow. Slowly the walls fill with proven facts and the toolbox with
+    instruments — none of it taught, all of it earned.</p>
+  <p class="lead">disco is that room. The kid is an LLM; the pokes are Python experiments;
+    the wall is the claims archive; the toolbox is the tools archive. Swap the room for a
+    different <strong>world</strong> — a codebase, a database, a simulated universe — and the
+    same kid starts filling different walls.</p>
+</section>
+
+<section class="wrap" id="loop">
+  <p class="eyebrow">the fast loop</p>
+  <h2>Predict → run → be surprised → compress</h2>
+  <p class="lead">Every discovery thread runs the same four-stroke engine. Curiosity is
+    anchored: the surprise score compares reality against a prediction committed
+    <em>before</em> execution, judged in a fresh context that never saw the reasoning.</p>
+  <div class="loop">
+    <div class="stage"><b>PREDICT</b><span>commit outcome + confidence (+ optional assertions)</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>RUN</b><span>execute in a subprocess — the only oracle</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>SURPRISE</b><span>reality vs. prediction, scored 0–10</span></div>
+    <div class="arrow">→</div>
+    <div class="stage"><b>COMPRESS</b><span>claim + runnable check, or park the mystery</span></div>
+  </div>
+  <p class="loopback">↺ dig while surprise <b>shrinks</b> — flat surprise is noise, and gets abandoned</p>
+</section>
+
+<section class="wrap" id="rules">
+  <p class="eyebrow">frozen rules — the mechanism</p>
+  <h2>The kernel knows nothing, and guards everything</h2>
+  <p class="lead">The kernel contains zero domain knowledge. It bakes in exactly one
+    meta-method and makes honest discovery the only winning move.</p>
+  <div class="grid">
+    <div class="card"><h3><span class="dot"></span>No claim without a check</h3>
+      <p>A fact enters the archive only if its <code>check.py</code> exits 0. Unverifiable insight is worthless here.</p></div>
+    <div class="card"><h3><span class="dot"></span>No claim without replication</h3>
+      <p>Backed by fewer than two experiments? Refused. One result is an anecdote.</p></div>
+    <div class="card"><h3><span class="dot"></span>Selection, not debate</h3>
+      <p>A claim whose check fails reality twice is culled — demoted to an open question. The archive is a population; reality is its environment.</p></div>
+    <div class="card"><h3><span class="dot"></span>Laws compress the archive</h3>
+      <p>A claim can subsume the instances it generalizes. Understanding is measured by the index getting <em>smaller</em>.</p></div>
+    <div class="card"><h3><span class="dot"></span>Tools are inherited</h3>
+      <p>Instruments the agent writes are importable in every later experiment — reuse is executable, not citation.</p></div>
+    <div class="card"><h3><span class="dot"></span>Self-evolving methodology</h3>
+      <p>The agent's own strategy evolves by champion/challenger selection. It writes its rules of conduct; reality decides which rulebook survives.</p></div>
+  </div>
+</section>
+
+<section class="wrap" id="discovered">
+  <p class="eyebrow">discovered so far</p>
+  <h2>None of it taught — and it re-proves itself on your machine</h2>
+  <div class="find">
+    <span class="world">sim-life · Conway's Life on toruses</span>
+    <h3>It built its own physics, then found gliders twice</h3>
+    <p>A bit-parallel engine, ~20 instruments on top, and dozens of verified claims: complete
+      functional graphs of the 4×4 (65,536 states) and 4×5 (1,048,576 states) universes; the
+      still-life maximum <code>⌊WH/2⌋</code> proven by dynamic programming; the glider as a true
+      spaceship iff <code>min(W,H) ≥ 5</code> — found first as anomalous drift in soup debris,
+      then characterized exactly.</p>
+  </div>
+  <div class="find">
+    <span class="world">gen-42 · a universe with no literature</span>
+    <h3>A law discovered with zero pretraining support</h3>
+    <p>In a cellular automaton whose rule was rolled at random — nothing about it exists in any
+      corpus — the agent found that damage propagation is direction-asymmetric: a 1→0 flip
+      spreads unbounded, a 0→1 flip stays frozen forever. It arrived through a surprise arc of
+      8 → 3 → 8 → 10 → 0.</p>
+  </div>
+  <div class="find">
+    <span class="world">eca · the 256 elementary rules</span>
+    <h3>Textbook theorems, rediscovered experimentally</h3>
+    <p>Rules 90 and 150 as GF(2) circulant maps with exact singularity laws; exactly 6 of 256
+      rules bijective, exactly 16 affine — censused and machine-checked from scratch.</p>
+  </div>
+  <div class="find">
+    <span class="world">multi-agent · one shared archive</span>
+    <h3>Division of labor, with no coordinator</h3>
+    <p>Two agents sharing an archive split the territory between themselves (focus overlap 0.246,
+      well below chance) — one of them discovering and claiming a bug in the archive's own
+      instruments. Across the corpus, stated confidence anti-correlates with surprise at
+      r ≈ −0.54: the agent knows when it doesn't know.</p>
+  </div>
+  <p class="note">Every claim ships with a <code>check.py</code>. Clone the repo and run
+    <code>python3 disco.py -w sim-life verify</code> to watch reality re-confirm all of it —
+    including the million-state census — from scratch.</p>
+</section>
+
+<section class="wrap" id="train">
+  <p class="eyebrow">worlds as RL environments</p>
+  <h2>Discovery you can train on</h2>
+  <p class="lead">Wrap the loop in procedurally-generated worlds — rules rolled at random, so
+    their truths exist in no pretraining corpus — and disco becomes a self-supplying training
+    environment. Web text holds humanity's <em>conclusions</em>; these trajectories hold the
+    <em>revision process</em> — belief, falsification, correction, verification — with every
+    label anchored in code that actually ran.</p>
+  <div class="pipe">
+    <div class="pnode">coevolve<small>worlds at the frontier</small></div>
+    <div class="arrow">→</div>
+    <div class="pnode">run / rollout<small>discovery sessions</small></div>
+    <div class="arrow">→</div>
+    <div class="pnode">export<small>reward-labeled JSONL</small></div>
+    <div class="arrow">→</div>
+    <div class="pnode">your trainer<small>SFT / GRPO</small></div>
+    <div class="arrow">↺</div>
+  </div>
+  <p class="lead">Every episode carries execution-anchored outcome rewards (gate + verify, not
+    opinion), per-step process rewards, curation filters, calibration pairs, agent and GRPO
+    group ids, and a <code>loss_mask</code> aligned to the transcript — a turnkey SFT target.
+    The clean eval writes itself: train on some generated worlds, test on held-out ones.
+    <strong>Transfer means the model learned to discover, not to recall.</strong></p>
+</section>
+
+<section class="wrap" id="start">
+  <p class="eyebrow">quickstart</p>
+  <h2>Stdlib only. Any local model, or <code>claude -p</code>.</h2>
+<pre><span class="c"># run against a local OpenAI-compatible endpoint (LM Studio) or claude -p</span>
+python3 disco.py <span class="k">run</span> -n 5           <span class="c"># five discovery threads</span>
+python3 disco.py <span class="k">status</span>            <span class="c"># the archive + recent ledger</span>
+python3 disco.py <span class="k">verify</span>            <span class="c"># reality re-checks every claim, culls what rots</span>
+
+python3 disco.py <span class="k">genworld</span> 7 --family modpoly   <span class="c"># a contamination-free world</span>
+python3 disco.py <span class="k">coevolve</span>          <span class="c"># keep a world population at the competence frontier</span>
+python3 disco.py <span class="k">rollout</span> -g 8       <span class="c"># GRPO group sampling from one frozen context</span>
+python3 disco.py <span class="k">export</span>            <span class="c"># threads → training episodes (JSONL)</span></pre>
+  <p class="note">Requires Python 3.10+ and no third-party dependencies. Experiments run
+    model-written code on your machine — run inside a VM or container if that matters to you.</p>
+</section>
+
+<footer class="wrap">
+  <div class="foot-links">
+    <a href="https://github.com/tfius/disco">GitHub</a>
+    <a href="https://github.com/tfius/disco/blob/main/README.md">README</a>
+    <a href="https://github.com/tfius/disco/blob/main/docs/games.md">The games under disco</a>
+    <a href="https://github.com/tfius/disco/blob/main/docs/roadmap.md">Roadmap</a>
+    <a href="https://github.com/tfius/disco/blob/main/docs/predictions.md">Predictions</a>
+  </div>
+  <p>disco — an open discovery harness. GPL-3.0. Built in the open;
+    every claim in it re-proves itself against reality.</p>
+</footer>
+
+</body>
+</html>
