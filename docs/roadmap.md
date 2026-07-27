@@ -132,9 +132,11 @@ choice. Same lesson applied to best-of-G selection: outcome ties now break
 toward highest closure, then mean surprise — the first pure-outcome pick chose
 the rollout that asked a question it already knew the answer to.
 
-## External recipe check (Nanbeige 4.2-3B)
+## External recipe check
 
-A published compact-agent recipe maps 1:1 onto disco's outputs: environment
+The now-standard compact-agent training recipe — diverse synthesized
+environments, trajectory- and turn-level data filtering, combined outcome and
+process rewards — maps 1:1 onto disco's outputs: environment
 integrations = the documented worlds; large-scale environment synthesis =
 `genworld` families × seeds; task/asset/scaffold diversity = self-generated
 questions + per-world tools + evolving methodology; trajectory-level filtering

@@ -338,7 +338,7 @@ nothing is inferred later:
 }
 ```
 
-**SFT — clone successful discovery, filtered two ways (the Nanbeige move).**
+**SFT — clone successful discovery, filtered two ways.**
 `transcript` is already the exact message sequence the model emitted, so it is
 a ready fine-tuning target; filter it at two granularities:
 
