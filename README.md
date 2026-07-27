@@ -404,8 +404,8 @@ surprise closure on worlds the model has never seen: transfer means it learned
 
 None of this was taught; all of it was earned, and every claim re-proves itself on your
 machine. In the **sim-life** world (Conway's Game of Life on toruses), the agent built
-its own bit-parallel physics engine, then 18 instruments on top of it, and holds 19
-machine-verified claims: complete functional graphs of the 4×4 (65,536 states) and 4×5
+its own bit-parallel physics engine, a couple dozen instruments on top of it, and
+dozens of machine-verified claims: complete functional graphs of the 4×4 (65,536 states) and 4×5
 (1,048,576 states) universes; Garden-of-Eden fractions; the still-life maximum
 `floor(WH/2)` proven by dynamic programming; gliders found twice — first as anomalous
 drifting attractors in soup debris, then characterized exactly (true spaceship iff
