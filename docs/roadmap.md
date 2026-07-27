@@ -69,7 +69,7 @@ the per-episode surprise trajectories in `disco export` are the process signal.
 ## Sequencing
 
 1. **Now**: export + genworld (done); first generated-world session (done —
-   above); world families beyond CA (`genworld --family modpoly|tag`) and
+   above); seven more genworld families beyond CA (`vm dfa curve percolation collatz modpoly tag`) and
    per-world discovery-efficiency stats (done).
 2. **Short — done**: batch rollout runner (`disco grind <seeds> --family F -n T`:
    generate + run + stats + export per world, unattended; the gate filters

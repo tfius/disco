@@ -189,6 +189,24 @@ math. Poor fits: taste domains (no oracle), retrieval facts (check verifies fetc
 not truth), slow or costly oracles (real lab experiments), and live production
 systems (pokes mutate the world — explore staging, run `verify` against prod).
 
+**Generated families.** `genworld <seed> --family <f>` rolls a contamination-free
+world whose rule is random — its truths exist in no pretraining corpus, which makes
+these the train/eval territories (`--difficulty` raises the tier; `coevolve` keeps a
+population at the competence frontier). Eight flavors, each a different kind of discovery:
+
+| family | territory | discovers |
+|---|---|---|
+| `ca` | 1D cellular automata | particles, cycles, invariants |
+| `modpoly` | polynomial maps on Z_m | functional-graph structure |
+| `tag` | tag systems | halting vs growth vs cycling |
+| `vm` | random register machines | reverse-engineer a computer (halting, computed function) |
+| `dfa` | finite automata | the accepted language, minimal DFA, pumping |
+| `curve` | elliptic curves E(F_p) | group order, Hasse bound, torsion |
+| `percolation` | random-neighborhood site percolation | threshold p_c, cluster laws, scaling |
+| `collatz` | generalized affine-residue maps | cycles, basins, stopping times |
+
+The per-family discovery programs live in [docs/predictions/gen-worlds.md](docs/predictions/gen-worlds.md).
+
 ### Claude backend
 
 With [Claude Code](https://claude.com/claude-code) installed and authenticated, the agent

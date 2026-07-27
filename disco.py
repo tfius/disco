@@ -620,7 +620,7 @@ def main():
     gw = sub.add_parser("genworld", help="generate a contamination-free random world from a seed")
     gw.add_argument("seed", type=int, help="generation seed")
     gw.add_argument("--family", choices=FAMILIES, default="ca",
-                    help="world family: 1D cellular automaton, polynomial map on Z_m, tag system")
+                    help="generated-world family (contamination-free; see docs/predictions/gen-worlds.md)")
     gw.add_argument("--difficulty", type=int, default=0, help="difficulty tier (0-2+)")
     gw.set_defaults(fn=cmd_genworld)
     cb = sub.add_parser("calib", help="cross-world calibration: confidence vs surprise")
