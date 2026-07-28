@@ -198,8 +198,9 @@
       "id": "log-3",
       "world": "logistic",
       "confidence": 70,
-      "status": "open",
-      "claim": "Feigenbaum delta estimated in [4.6, 4.75] from cascade ratios with stated tolerance"
+      "status": "confirmed",
+      "claim": "Feigenbaum delta estimated in [4.6, 4.75] from cascade ratios with stated tolerance",
+      "resolved": "2026-07-28 \u2014 first-contact run: delta1~4.74-4.77, delta2~4.57-4.65 bracket 4.669, admitted+verified"
     },
     {
       "id": "log-4",

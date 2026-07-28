@@ -1,0 +1,54 @@
+{
+  "generation": 1,
+  "champion": [
+    {
+      "thread": "20260728-110027",
+      "ending": "claim",
+      "score": -2.0
+    },
+    {
+      "thread": "20260728-110543",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ],
+  "challenger": [
+    {
+      "thread": "20260728-105722",
+      "ending": "claim",
+      "score": 3.0
+    },
+    {
+      "thread": "20260728-110347",
+      "ending": "claim",
+      "score": 3.0
+    },
+    {
+      "thread": "20260728-110707",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ],
+  "attribution": {
+    "20260728-105722": {
+      "gen": 1,
+      "variant": "challenger"
+    },
+    "20260728-110027": {
+      "gen": 1,
+      "variant": "champion"
+    },
+    "20260728-110347": {
+      "gen": 1,
+      "variant": "challenger"
+    },
+    "20260728-110543": {
+      "gen": 1,
+      "variant": "champion"
+    },
+    "20260728-110707": {
+      "gen": 1,
+      "variant": "challenger"
+    }
+  }
+}
