@@ -300,6 +300,11 @@ the competence frontier → `run` / `grind` / `rollout` fill `exports/` with
 reward-labeled trajectories → your trainer consumes the JSONL. See
 [docs/roadmap.md](docs/roadmap.md) for the recipe mapping.
 
+`disco export --all` pools every world into one `exports/all.jsonl`; the kernel stays
+stdlib-only and emits JSONL (lossless, universal). For columnar/compressed storage,
+the optional `scripts/to_parquet.py` (needs `pip install polars`, kept out of the core)
+flattens it to one parquet — scalar fields as columns, nested fields as JSON strings.
+
 ### How to train on them
 
 The core loop above discovers; wrapped in generated worlds it becomes a

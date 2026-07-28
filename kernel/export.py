@@ -27,6 +27,32 @@ def _ledger_maps():
     return steps, outcomes
 
 
+def episodes_all(out_path=None):
+    """Pool every world's episodes into one JSONL (each row carries its `world`).
+    Reuses the per-world exporter; restores config. Returns (path, total, worlds)."""
+    saved_name, saved_dir = config.WORLD, config.WORLD_DIR
+    out_dir = config.ROOT / "exports"
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_path or (out_dir / "all.jsonl")
+    total, nworlds = 0, 0
+    try:
+        with open(out_path, "w") as out:
+            worlds = sorted(config.WORLDS.iterdir()) if config.WORLDS.exists() else []
+            for wd in worlds:
+                if not wd.is_dir() or not (wd / "runs").exists():
+                    continue
+                config.point_at(wd, wd.name)
+                path, count = episodes()  # writes exports/<world>.jsonl too
+                if count:
+                    for line in path.read_text().splitlines():
+                        out.write(line + "\n")
+                    total += count
+                    nworlds += 1
+    finally:
+        config.point_at(saved_dir, saved_name)
+    return out_path, total, nworlds
+
+
 def episodes(out_path=None):
     """Write episodes JSONL for the current world; returns (path, count)."""
     config.ensure_dirs()

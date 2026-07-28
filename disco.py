@@ -118,8 +118,12 @@ def cmd_stats(args):
 
 
 def cmd_export(args):
-    path, count = export.episodes(args.out)
-    print(f"exported {count} episodes -> {path}")
+    if args.all:
+        path, count, nworlds = export.episodes_all(args.out)
+        print(f"exported {count} episodes from {nworlds} worlds -> {path}")
+    else:
+        path, count = export.episodes(args.out)
+        print(f"exported {count} episodes -> {path}")
 
 
 GEN_CLOSING = ("This system was generated at random from seed {seed}; nothing about it "
@@ -692,6 +696,7 @@ def main():
     ev.set_defaults(fn=cmd_evolve)
     ex = sub.add_parser("export", help="export the world's threads as training episodes (JSONL)")
     ex.add_argument("-o", "--out", default=None, help="output path (default exports/<world>.jsonl)")
+    ex.add_argument("--all", action="store_true", help="pool every world into one exports/all.jsonl")
     ex.set_defaults(fn=cmd_export)
     gw = sub.add_parser("genworld", help="generate a contamination-free random world from a seed")
     gw.add_argument("seed", type=int, help="generation seed")
