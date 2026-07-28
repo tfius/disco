@@ -1,0 +1,145 @@
+{
+  "model": "sonnet",
+  "backend": "claude",
+  "ts": "20260727-232348",
+  "threads_per_world": 3,
+  "rows": [
+    {
+      "threads": 3,
+      "steps": 7,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 3,
+      "mean_surprise": 2.71,
+      "mean_first_step_surprise": 2.33,
+      "mean_closure": 1.33,
+      "closed_threads": 1,
+      "first_contact_surprise": 0.5,
+      "mean_steps_per_thread": 2.33,
+      "world": "eval-ca-7000001",
+      "family": "ca"
+    },
+    {
+      "threads": 3,
+      "steps": 6,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 1,
+      "mean_surprise": 2.83,
+      "mean_first_step_surprise": 4.67,
+      "mean_closure": 3.67,
+      "closed_threads": 3,
+      "first_contact_surprise": 0.5,
+      "mean_steps_per_thread": 2.0,
+      "world": "eval-vm-7000002",
+      "family": "vm"
+    },
+    {
+      "threads": 3,
+      "steps": 7,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 2,
+      "mean_surprise": 2.71,
+      "mean_first_step_surprise": 2.67,
+      "mean_closure": 1.67,
+      "closed_threads": 1,
+      "first_contact_surprise": 0.0,
+      "mean_steps_per_thread": 2.33,
+      "world": "eval-dfa-7000003",
+      "family": "dfa"
+    },
+    {
+      "threads": 3,
+      "steps": 9,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 3,
+      "mean_surprise": 3.44,
+      "mean_first_step_surprise": 2.0,
+      "mean_closure": 0.0,
+      "closed_threads": 2,
+      "first_contact_surprise": 3.33,
+      "mean_steps_per_thread": 3.0,
+      "world": "eval-curve-7000004",
+      "family": "curve"
+    },
+    {
+      "threads": 3,
+      "steps": 7,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 3,
+      "mean_surprise": 2.43,
+      "mean_first_step_surprise": 1.67,
+      "mean_closure": 0.33,
+      "closed_threads": 1,
+      "first_contact_surprise": 2.0,
+      "mean_steps_per_thread": 2.33,
+      "world": "eval-percolation-7000005",
+      "family": "percolation"
+    },
+    {
+      "threads": 3,
+      "steps": 6,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 3,
+      "mean_surprise": 0.0,
+      "mean_first_step_surprise": 0.0,
+      "mean_closure": 0.0,
+      "closed_threads": 0,
+      "first_contact_surprise": 0.0,
+      "mean_steps_per_thread": 2.0,
+      "world": "eval-collatz-7000006",
+      "family": "collatz"
+    },
+    {
+      "threads": 3,
+      "steps": 7,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 3,
+      "mean_surprise": 1.14,
+      "mean_first_step_surprise": 1.67,
+      "mean_closure": 0.67,
+      "closed_threads": 2,
+      "first_contact_surprise": 0.5,
+      "mean_steps_per_thread": 2.33,
+      "world": "eval-modpoly-7000007",
+      "family": "modpoly"
+    },
+    {
+      "threads": 3,
+      "steps": 7,
+      "endings": {
+        "claim": 3
+      },
+      "admitted": 2,
+      "mean_surprise": 2.71,
+      "mean_first_step_surprise": 3.33,
+      "mean_closure": 2.33,
+      "closed_threads": 2,
+      "first_contact_surprise": 2.5,
+      "mean_steps_per_thread": 2.33,
+      "world": "eval-tag-7000008",
+      "family": "tag"
+    }
+  ],
+  "aggregate": {
+    "worlds": 8,
+    "threads": 24,
+    "verified_claims": 20,
+    "claims_per_thread": 0.833,
+    "mean_first_contact_surprise": 1.17,
+    "mean_closure": 1.25,
+    "mean_surprise": 2.25
+  }
+}
