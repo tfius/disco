@@ -318,10 +318,124 @@ def _gen_collatz(rng, seed, difficulty=0):
             f"'always halts' claims only as budgeted, seeded observations, never as proofs. ")
 
 
-FAMILIES = ["ca", "modpoly", "tag", "vm", "dfa", "curve", "percolation", "collatz"]
+def _gen_game(rng, seed, difficulty=0):
+    m = n = [2, 3, 4][min(difficulty, 2)]
+    hi = 10
+    A = [[rng.randrange(hi) for _ in range(n)] for _ in range(m)]
+    B = [[rng.randrange(hi) for _ in range(n)] for _ in range(m)]
+    return (f"two-player {m}x{n} normal-form game",
+            f"Your world is a two-player normal-form game. The row player has {m} strategies "
+            f"(0..{m-1}), the column player has {n} (0..{n-1}). When row plays i and column "
+            f"plays j, row receives A[i][j] and column receives B[i][j]:\n\n"
+            f"A (row payoffs) = {A}\nB (column payoffs) = {B}\n\n"
+            f"Discover exactly: all pure-strategy Nash equilibria (neither player gains by "
+            f"unilaterally deviating); strictly and weakly dominated strategies; the "
+            f"best-response correspondence; whether the game is zero-sum or constant-sum; "
+            f"mixed-strategy Nash equilibria via support enumeration in exact rational "
+            f"arithmetic; and the Pareto-optimal outcomes. Check every claim by enumeration "
+            f"or exact linear algebra over the given matrices. ")
+
+
+def _gen_combgame(rng, seed, difficulty=0):
+    K = [6, 10, 16][min(difficulty, 2)]
+    S = sorted(rng.sample(range(1, K + 1), rng.randrange(2, min(K, 5) + 1)))
+    return (f"impartial subtraction game, set {S}",
+            f"Your world is an impartial combinatorial game under normal play (a player who "
+            f"cannot move loses). A position is a nonnegative integer (a heap of tokens). From "
+            f"a heap of size h, a legal move removes exactly k tokens for any k in the "
+            f"subtraction set S = {S} with k <= h. Players alternate. Discover exactly: the "
+            f"P-positions (losing for the player to move) and N-positions; the Grundy value "
+            f"G(h) = mex of the Grundy values of h's options; the eventual period of the "
+            f"Grundy sequence (subtraction games are eventually periodic); the winning move "
+            f"from any N-position; and, for multi-heap play, the Sprague-Grundy rule that a "
+            f"position is a loss iff the XOR of its heaps' Grundy values is 0. Claims computed "
+            f"by recursion with an explicit bound. ")
+
+
+def _gen_coalition(rng, seed, difficulty=0):
+    n = [3, 4, 4][min(difficulty, 2)]
+    hi = 12
+    v = [0] * (1 << n)
+    for mask in range(1, 1 << n):
+        size = bin(mask).count("1")
+        v[mask] = rng.randrange(size, size * hi + 1)
+    return (f"cooperative game, {n} players",
+            f"Your world is a cooperative game with N = {n} players {{0..{n-1}}}. Each "
+            f"coalition S (a subset of players) can secure a value v(S), with v(empty) = 0. "
+            f"Values are indexed by the subset written as a bitmask (bit i set means player i "
+            f"is in S):\n\nv = {v}\n\n"
+            f"Discover exactly: whether v is superadditive (v(S∪T) >= v(S)+v(T) for disjoint "
+            f"S, T); each player's Shapley value (their mean marginal contribution over all "
+            f"{n}! orderings); whether the core is non-empty (payoff vectors x summing to "
+            f"v(full set) with sum_{{i in S}} x_i >= v(S) for every S) and a core allocation "
+            f"if so; and the most-blocked coalition. Claims exact over the {1 << n} subsets. ")
+
+
+def _gen_auction(rng, seed, difficulty=0):
+    k = [2, 3, 3][min(difficulty, 2)]
+    V = [6, 8, 10][min(difficulty, 2)]
+    vals = [rng.randrange(2, V + 1) for _ in range(k)]
+    fmt = rng.choice(["first-price", "second-price", "all-pay"])
+    price = {"first-price": "the winner pays their own bid",
+             "second-price": "the winner pays the second-highest bid",
+             "all-pay": "every bidder pays their own bid; only the winner receives the item"}[fmt]
+    return (f"{fmt} auction, {k} bidders, valuations {vals}",
+            f"Your world is a sealed-bid {fmt} auction for one item among {k} bidders with "
+            f"known integer valuations v = {vals}. Bids are integers in 0..{V}. The highest "
+            f"bid wins (ties go to the lowest-indexed bidder); {price}. A bidder's utility is "
+            f"(valuation - price paid) if they win, else (- price paid). Discover exactly, by "
+            f"enumerating the finite bid-profile space: each bidder's dominant strategy if one "
+            f"exists (does bidding one's valuation weakly dominate?); all pure-strategy Nash "
+            f"equilibria; the seller's revenue at each equilibrium; whether the outcome is "
+            f"efficient (does the highest-valuation bidder win?); and how revenue compares "
+            f"across formats on these valuations. ")
+
+
+def _gen_congestion(rng, seed, difficulty=0):
+    npl = [4, 6, 8][min(difficulty, 2)]
+    # Braess diamond: s->a, s->b, a->t, b->t, and cross edge a->b; cost c(x)=a*x+b
+    edges = {}
+    for e in ("sa", "sb", "at", "bt", "ab"):
+        edges[e] = (rng.randrange(0, 4), rng.randrange(0, 12))
+    return (f"congestion game, Braess network, {npl} players",
+            f"Your world is an atomic routing (congestion) game. {npl} players each send one "
+            f"unit of flow from source s to sink t on this network (nodes s, a, b, t):\n"
+            f"  edges s->a, s->b, a->t, b->t, a->b, each with cost c(x) = A*x + B where x is "
+            f"the number of players using that edge:\n\n"
+            + "\n".join(f"  {e}: cost {A}*x + {B}" for e, (A, B) in edges.items()) + "\n\n"
+            f"The s-t paths are P1 = s-a-t, P2 = s-b-t, and P3 = s-a-b-t. A player's cost is "
+            f"the sum of the costs of the edges on their chosen path, evaluated at the total "
+            f"flow those edges carry. Discover exactly: the pure Nash equilibrium routing "
+            f"(no player can switch path to lower their cost) and its total cost; the social "
+            f"optimum (min total cost); the price of anarchy (Nash / optimum); and whether "
+            f"Braess's paradox holds — does deleting the cross edge a->b LOWER the equilibrium "
+            f"total cost? Claims exact by best-response / enumeration over path assignments. ")
+
+
+def _gen_voting(rng, seed, difficulty=0):
+    m = [3, 4, 4][min(difficulty, 2)]
+    n = [5, 7, 9][min(difficulty, 2)]
+    prefs = [rng.sample(range(m), m) for _ in range(n)]
+    return (f"social choice, {n} voters, {m} candidates",
+            f"Your world is a social-choice profile: {n} voters rank {m} candidates "
+            f"{{0..{m-1}}}. Each voter's strict preference order (most preferred first):\n\n"
+            f"{prefs}\n\n"
+            f"Discover exactly: the pairwise majority tournament (for each pair, who is ranked "
+            f"higher by more voters); whether a Condorcet winner exists (beats every other "
+            f"candidate head-to-head) or there is a Condorcet cycle; the winners under "
+            f"plurality (most first-place votes) and Borda count, and whether these agree with "
+            f"each other and with Condorcet; and manipulability — whether some single voter can "
+            f"obtain an outcome they strictly prefer under plurality or Borda by submitting a "
+            f"false ranking. Claims exact by enumeration over the fixed profile. ")
+
+
+FAMILIES = ["ca", "modpoly", "tag", "vm", "dfa", "curve", "percolation", "collatz",
+            "game", "combgame", "coalition", "auction", "congestion", "voting"]
 _GEN = {"ca": _gen_ca, "modpoly": _gen_modpoly, "tag": _gen_tag, "vm": _gen_vm,
         "dfa": _gen_dfa, "curve": _gen_curve, "percolation": _gen_percolation,
-        "collatz": _gen_collatz}
+        "collatz": _gen_collatz, "game": _gen_game, "combgame": _gen_combgame,
+        "coalition": _gen_coalition, "auction": _gen_auction,
+        "congestion": _gen_congestion, "voting": _gen_voting}
 
 
 def _genworld_create(family, seed, must_create=True, difficulty=0) -> str:

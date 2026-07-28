@@ -205,6 +205,12 @@ population at the competence frontier). Eight flavors, each a different kind of 
 | `curve` | elliptic curves E(F_p) | group order, Hasse bound, torsion |
 | `percolation` | random-neighborhood site percolation | threshold p_c, cluster laws, scaling |
 | `collatz` | generalized affine-residue maps | cycles, basins, stopping times |
+| `game` | random normal-form games | pure/mixed Nash, dominance, zero-sum |
+| `combgame` | impartial subtraction games | P/N-positions, Grundy values, periodicity |
+| `coalition` | cooperative games | the core, Shapley value, superadditivity |
+| `auction` | sealed-bid auctions | dominant strategies, equilibria, revenue |
+| `congestion` | Braess routing networks | Nash flow, price of anarchy, Braess paradox |
+| `voting` | social-choice profiles | Condorcet winner/cycles, manipulability |
 
 The per-family discovery programs live in [docs/predictions/gen-worlds.md](docs/predictions/gen-worlds.md).
 

@@ -62,6 +62,18 @@ skill, not the memory — and (c) honest surprise signal for process rewards.
 - **collatz** (generalized affine-residue maps): open-frontier integer dynamics —
   which starts reach cycles under a budget, cycles and basins, stopping-time
   statistics; 'diverges'/'always halts' only as budgeted, seeded observations.
+- **game** (random normal-form bimatrix games): equilibrium theory — pure and
+  mixed Nash, dominated strategies, zero-sum detection, Pareto outcomes.
+- **combgame** (random impartial subtraction games): combinatorial game theory —
+  P/N-positions, Grundy/nimber values, Grundy-sequence periodicity, Sprague-Grundy.
+- **coalition** (random cooperative games): cooperative theory — superadditivity,
+  the Shapley value, non-emptiness of the core and a core allocation.
+- **auction** (random sealed-bid auctions): mechanism design — dominant strategies,
+  incentive-compatibility, pure Nash bidding, revenue, efficiency.
+- **congestion** (random Braess routing networks): price of anarchy — Nash flow vs
+  social optimum, and whether deleting an edge lowers equilibrium cost (Braess).
+- **voting** (random preference profiles): social choice — Condorcet winner/cycles,
+  plurality vs Borda vs Condorcet disagreement, single-voter manipulability.
 
 ## Signature metrics (why this class is the eval)
 
