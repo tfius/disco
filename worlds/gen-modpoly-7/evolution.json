@@ -1,0 +1,36 @@
+{
+  "generation": 1,
+  "champion": [
+    {
+      "thread": "20260728-120355",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ],
+  "challenger": [
+    {
+      "thread": "20260728-120128",
+      "ending": "claim",
+      "score": 3.0
+    },
+    {
+      "thread": "20260728-120547",
+      "ending": "claim",
+      "score": 3.0
+    }
+  ],
+  "attribution": {
+    "20260728-120128": {
+      "gen": 1,
+      "variant": "challenger"
+    },
+    "20260728-120355": {
+      "gen": 1,
+      "variant": "champion"
+    },
+    "20260728-120547": {
+      "gen": 1,
+      "variant": "challenger"
+    }
+  }
+}

@@ -102,7 +102,7 @@ def judge_surprise(prediction: str, confidence: int, result: dict) -> dict:
             )},
         ],
         temperature=config.JUDGE_TEMPERATURE,
-        max_tokens=200,
+        max_tokens=600,  # room for a complete note — the note is recorded, must not be cut mid-word
     )
     surprise, note = llm.json_score(raw, "surprise", default=5)
     return {"surprise": surprise, "note": note}
@@ -161,7 +161,7 @@ def _run_steps(thread_id, thread_dir, messages, trajectory, focus, outcome, on_e
                     messages.append({"role": "assistant", "content": resp})
                     _bank_tool(payload, thread_id, on_event)
                     if decision == "CLAIM":  # insists — park it, kernel does not bend
-                        title = payload["claim"].strip().splitlines()[0][:80]
+                        title = payload["claim"].strip().splitlines()[0]
                         slug = archive.save_question(
                             "unreplicated: " + title,
                             payload["claim"] + "\n\nproposed check:\n```python\n"

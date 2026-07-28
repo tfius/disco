@@ -39,7 +39,7 @@ def chat(messages, temperature=None, max_tokens=None, retries=2):
                 data = json.load(r)
             return strip_think(data["choices"][0]["message"]["content"])
         except urllib.error.HTTPError as e:
-            body = e.read().decode(errors="replace")[:300]
+            body = e.read().decode(errors="replace")
             last_err = f"{e} — {body}"
             if attempt < retries:
                 time.sleep(2 * (attempt + 1))
@@ -76,8 +76,8 @@ def _chat_claude(messages, retries=3):
                                timeout=config.LLM_TIMEOUT)
             if p.returncode == 0 and p.stdout.strip():
                 return strip_think(p.stdout)
-            last_err = (f"exit {p.returncode}: stderr={p.stderr.strip()[:200]!r} "
-                        f"stdout={p.stdout.strip()[:200]!r}")
+            last_err = (f"exit {p.returncode}: stderr={p.stderr.strip()!r} "
+                        f"stdout={p.stdout.strip()!r}")
         except (subprocess.TimeoutExpired, OSError) as e:
             last_err = e
         if attempt < retries:
@@ -91,6 +91,6 @@ def json_score(raw: str, key: str, default: int) -> tuple[int, str]:
     try:
         data = json.loads(m.group()) if m else {}
         return (max(0, min(10, int(data.get(key, default)))),
-                str(data.get("note", ""))[:200])
+                str(data.get("note", "")))  # full note — never stripped, it is a recorded result
     except (json.JSONDecodeError, ValueError, TypeError):
-        return default, f"judge unparseable: {raw[:80]}"
+        return default, f"judge unparseable: {raw}"

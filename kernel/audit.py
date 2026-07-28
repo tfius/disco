@@ -16,7 +16,7 @@ def _judge_accuracy(predicted: str, actual: str) -> int:
         [
             {"role": "system", "content": prompts.AUDIT_JUDGE_SYSTEM},
             {"role": "user", "content": prompts.AUDIT_JUDGE_USER.format(
-                predicted=predicted[:2000], actual=actual[:2000])},
+                predicted=predicted, actual=actual)},
         ],
         temperature=config.JUDGE_TEMPERATURE,
         max_tokens=200,

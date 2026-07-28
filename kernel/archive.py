@@ -197,7 +197,7 @@ def _demote(claim_dir: Path, fails: int, thread: str = None):
     body = (claim_dir / "claim.md").read_text() if (claim_dir / "claim.md").exists() else ""
     check = (claim_dir / "check.py").read_text() if (claim_dir / "check.py").exists() else ""
     save_question(
-        f"demoted: {statement[:70]}",
+        f"demoted: {statement}",
         f"This was an archived claim; its check failed reality {fails} consecutive "
         f"verify runs, so it was demoted. Re-earn it or refute it.\n\n{body}\n\n"
         f"old check:\n```python\n{check}\n```",
@@ -212,7 +212,7 @@ def _signatures(path: Path) -> str:
         sigs = re.findall(r"^def\s+(\w+\([^)]*\))", path.read_text(), re.M)
     except OSError:
         return ""
-    return " | " + ", ".join(sigs[:5]) if sigs else ""
+    return " | " + ", ".join(sigs) if sigs else ""
 
 
 def _first_line(path: Path) -> str:
@@ -220,7 +220,7 @@ def _first_line(path: Path) -> str:
         for line in path.read_text().splitlines():
             line = line.strip().lstrip("# ")
             if line:
-                return line[:120]
+                return line
     except OSError:
         pass
     return "(unreadable)"
@@ -253,7 +253,7 @@ def claims_digest(max_items: int = 60) -> str:
     claims = sorted(config.CLAIMS.iterdir()) if config.CLAIMS.exists() else []
     for d in claims[-max_items:]:
         try:
-            lines.append("- " + (d / "claim.md").read_text().strip().replace("\n", " ")[:300])
+            lines.append("- " + (d / "claim.md").read_text().strip().replace("\n", " "))
         except OSError:
             continue
     return "\n".join(lines) if lines else "(no claims)"

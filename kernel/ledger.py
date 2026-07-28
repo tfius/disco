@@ -29,7 +29,7 @@ def tail(n: int = 12, for_agent: bool = False) -> str:
         if for_agent and kind in ("audit", "verify", "evolution"):
             continue
         if kind == "step":
-            out.append(f"- step {e.get('thread')}/{e.get('step')}: surprise {e.get('surprise')}/10 — {e.get('focus', '')[:80]}")
+            out.append(f"- step {e.get('thread')}/{e.get('step')}: surprise {e.get('surprise')}/10 — {e.get('focus', '')}")
         elif kind == "claim":
             out.append(f"- CLAIM {'admitted' if e.get('admitted') else 'REJECTED (check failed)'}: {e.get('slug')}")
         elif kind == "tool":
@@ -40,7 +40,7 @@ def tail(n: int = 12, for_agent: bool = False) -> str:
         elif kind == "question":
             out.append(f"- question parked: {e.get('slug')}")
         elif kind == "noise":
-            out.append(f"- noise abandoned: {e.get('focus', '')[:80]}")
+            out.append(f"- noise abandoned: {e.get('focus', '')}")
         elif kind == "audit":
             out.append(f"- AUDIT: uplift {e.get('uplift')} (with archive {e.get('with_archive')} vs without {e.get('without_archive')})")
         elif kind == "evolution":

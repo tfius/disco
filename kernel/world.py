@@ -29,19 +29,12 @@ def run_python(code: str, workdir: Path, timeout: int = None) -> dict:
             timeout=timeout or config.EXEC_TIMEOUT,
             env=env,
         )
-        return {
-            "exit": p.returncode,
-            "stdout": p.stdout[-8000:],
-            "stderr": p.stderr[-4000:],
-            "timeout": False,
-        }
+        return {"exit": p.returncode, "stdout": p.stdout, "stderr": p.stderr, "timeout": False}
     except subprocess.TimeoutExpired as e:
-        return {
-            "exit": None,
-            "stdout": (e.stdout or "")[-8000:] if isinstance(e.stdout, str) else "",
-            "stderr": (e.stderr or "")[-4000:] if isinstance(e.stderr, str) else "",
-            "timeout": True,
-        }
+        return {"exit": None,
+                "stdout": e.stdout if isinstance(e.stdout, str) else "",
+                "stderr": e.stderr if isinstance(e.stderr, str) else "",
+                "timeout": True}
 
 
 def format_result(result: dict) -> str:

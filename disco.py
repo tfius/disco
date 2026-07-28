@@ -77,7 +77,7 @@ def cmd_worlds(args):
     for name in names:
         wd = config.WORLDS / name
         desc_file = wd / "world.md"
-        desc = (desc_file.read_text().strip().splitlines()[0][:90]
+        desc = (desc_file.read_text().strip().splitlines()[0]
                 if desc_file.exists() else config.DEFAULT_WORLD_TEXT)
         claims_dir = wd / "archive" / "claims"
         n = len(list(claims_dir.iterdir())) if claims_dir.exists() else 0
@@ -635,7 +635,7 @@ def cmd_deps(args):
         check = d / "check.py"
         deps = archive.tool_imports(check.read_text()) if check.exists() else []
         if deps:
-            print(f"{d.name[:56]} <- {', '.join(deps)}")
+            print(f"{d.name} <- {', '.join(deps)}")
         for dep in deps:
             tool_users.setdefault(dep, []).append(d.name)
     print()
@@ -770,7 +770,7 @@ def cmd_audit(args):
 
 def cmd_status(args):
     config.ensure_dirs()
-    print(f"world: {config.WORLD} — {config.world_description().splitlines()[0][:90]}\n")
+    print(f"world: {config.WORLD} — {config.world_description().splitlines()[0]}\n")
     print(archive.index())
     print("\nrecent:")
     print(ledger.tail(20))
